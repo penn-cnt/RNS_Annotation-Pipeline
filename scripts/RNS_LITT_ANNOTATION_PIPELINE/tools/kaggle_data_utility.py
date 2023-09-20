@@ -18,7 +18,7 @@ TaskCore = namedtuple('TaskCore', ['cached_data_loader', 'data_dir', 'target', '
 
 
 class KaggleDataset(Dataset):
-    def __init__(self, ictal_data_X, interictal_data_X, test_data_X, labeled=True, transform=True):
+    def __init__(self, ictal_data_X, interictal_data_X, test_data_X, labeled=True, transform=True, astensor = True):
         self.ictal_data_X = ictal_data_X
         self.interictal_data_X = interictal_data_X
         self.test_data_X = test_data_X
@@ -44,24 +44,40 @@ class KaggleDataset(Dataset):
 
         self.length = len(self.data)
 
-        self.augmentation = T.Compose([
+        if astensor:
+            self.augmentation = T.Compose([
+                T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
+                T.ToPILImage(),
+                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.3),
+                T.RandomPosterize(4, p=0.2),
+                T.ToTensor()
+            ])
 
-            T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-            T.ToPILImage(),
-            T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
-            T.RandomApply([T.ColorJitter()], p=0.5),
-            T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
-            T.RandomInvert(p=0.2),
-            T.RandomPosterize(4, p=0.2),
-            T.ToTensor()
-        ])
+            self.totensor = T.Compose([
+                T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
+                T.ToPILImage(),
+                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.ToTensor()
+            ])
+        else:
+            self.augmentation = T.Compose([
+                T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
+                T.ToPILImage(),
+                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.3),
+                T.RandomPosterize(4, p=0.2),
+            ])
 
-        self.totensor = T.Compose([
-            T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-            T.ToPILImage(),
-            T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
-            T.ToTensor()
-        ])
+            self.totensor = T.Compose([
+                T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
+                T.ToPILImage(),
+                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+            ])
 
     def __len__(self):
         return self.length
@@ -83,7 +99,7 @@ class KaggleDataset(Dataset):
             data = data.repeat(3, 1, 1)
             data = self.totensor(data)
 
-        return data, torch.from_numpy(label).to(dtype=torch.long), index
+        return data, torch.from_numpy(label).to(dtype=torch.long), None
 
 
 def unix_time(dt):

@@ -9,12 +9,7 @@ import matplotlib
 from sklearn.metrics import accuracy_score
 
 matplotlib.use("nbAgg")
-from sklearn.decomposition import PCA
-import data_utility
-import interactive_plot
 import times
-import nltk
-from typing import Iterable
 
 path = 'data'
 
