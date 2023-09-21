@@ -48,10 +48,10 @@ class KaggleDataset(Dataset):
             self.augmentation = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
                 T.ToPILImage(),
-                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
                 T.RandomApply([T.ColorJitter()], p=0.5),
                 T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
-                T.RandomInvert(p=0.3),
+                T.RandomInvert(p=0.2),
                 T.RandomPosterize(4, p=0.2),
                 T.ToTensor()
             ])
@@ -59,24 +59,24 @@ class KaggleDataset(Dataset):
             self.totensor = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
                 T.ToPILImage(),
-                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
                 T.ToTensor()
             ])
         else:
             self.augmentation = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
                 T.ToPILImage(),
-                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
                 T.RandomApply([T.ColorJitter()], p=0.5),
                 T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
-                T.RandomInvert(p=0.3),
+                T.RandomInvert(p=0.2),
                 T.RandomPosterize(4, p=0.2),
             ])
 
             self.totensor = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
                 T.ToPILImage(),
-                T.Resize((64, 400), interpolation=T.InterpolationMode.NEAREST),
+                T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
             ])
 
     def __len__(self):
