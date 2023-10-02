@@ -12,13 +12,13 @@ from lightly.transforms.swav_transform import SwaVTransform
 class SwaV(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        resnet = torchvision.models.resnet34()
+        resnet = torchvision.models.resnet50()
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
-        self.projection_head = SwaVProjectionHead(512, 512, 128)
+        self.projection_head = SwaVProjectionHead(2048, 2048, 128)
         self.prototypes = SwaVPrototypes(128, 512, 5)
         self.start_queue_at_epoch = 30
         self.queues = nn.ModuleList([MemoryBankModule(size=512) for _ in range(2)])
-        self.criterion = SwaVLoss(sinkhorn_epsilon = 0.05)
+        self.criterion = SwaVLoss(sinkhorn_epsilon = 0.03)
 
     def training_step(self, batch, batch_idx):
         views = batch[0]
