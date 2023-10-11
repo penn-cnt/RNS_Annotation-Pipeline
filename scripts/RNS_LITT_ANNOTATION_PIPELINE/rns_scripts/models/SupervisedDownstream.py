@@ -69,6 +69,7 @@ class SupervisedDownstream(pl.LightningModule):
         return pred, label
 
     def predict_step(self, batch, batch_idx):
+        print(batch)
         x, y = batch
         emb = self.backbone(x)
         emb = emb.view(-1, 512)

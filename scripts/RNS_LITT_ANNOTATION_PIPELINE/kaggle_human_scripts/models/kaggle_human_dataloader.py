@@ -5,37 +5,31 @@ from torch.utils.data import Dataset
 import torch
 
 class KaggleDataset(Dataset):
-    def __init__(self, ictal_data_X, interictal_data_X, test_data_X, inctal_data_y, interictal_data_y, labeled=True, transform=True, astensor = True):
-        self.ictal_data_X = ictal_data_X
-        self.interictal_data_X = interictal_data_X
+    def __init__(self, data_X, data_y, test_data_X, labeled=True, transform=True, astensor = True):
+        self.data_X = data_X
+        self.data_y = np.expand_dims(data_y,axis=1)
         self.test_data_X = test_data_X
-        self.ictal_data_y = np.ones(len(self.ictal_data_X))[:, np.newaxis]
-        self.interictal_data_y = np.zeros(len(self.interictal_data_X))[:, np.newaxis]
 
         self.transform = transform
         self.labeled = labeled
 
-        data_full = np.vstack((self.ictal_data_X, self.interictal_data_X))
-        data_full = np.vstack((data_full, self.test_data_X))
-
-        self.mean = np.mean(data_full)
-        self.sd = np.std(data_full)
-
         if labeled:
-            self.data = np.vstack((self.ictal_data_X, self.interictal_data_X))
-            self.label = np.vstack((self.ictal_data_y, self.interictal_data_y))
+            self.data = self.data_X
+            self.label = self.data_y
         else:
-            self.data = np.vstack((self.ictal_data_X, self.interictal_data_X))
-            self.data = np.vstack((self.data, self.test_data_X))
+            self.data = np.vstack((self.data_X, self.test_data_X))
             self.label = np.empty(len(self.data))[:, np.newaxis]
+
+        self.mean = np.mean(self.data)
+        self.sd = np.std(self.data)
 
         self.length = len(self.data)
 
         if astensor:
             self.augmentation = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-                T.ToPILImage(),
                 T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
+                T.ToPILImage(),
                 T.RandomApply([T.ColorJitter()], p=0.5),
                 T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
                 T.RandomInvert(p=0.2),
@@ -45,15 +39,14 @@ class KaggleDataset(Dataset):
 
             self.totensor = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-                T.ToPILImage(),
                 T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
                 T.ToTensor()
             ])
         else:
             self.augmentation = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-                T.ToPILImage(),
                 T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
+                T.ToPILImage(),
                 T.RandomApply([T.ColorJitter()], p=0.5),
                 T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
                 T.RandomInvert(p=0.2),
@@ -62,6 +55,27 @@ class KaggleDataset(Dataset):
 
             self.totensor = T.Compose([
                 T.Normalize([self.mean, self.mean, self.mean], [self.sd, self.sd, self.sd]),
-                T.ToPILImage(),
+                # T.ToPILImage(),
                 T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
             ])
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        data = self.data[index]
+        label = self.label[index]
+
+        if self.transform:
+            channel_index = np.arange(data.shape[0])
+            np.random.shuffle(channel_index)
+            data = data[channel_index]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.augmentation(data)
+
+        else:
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.totensor(data)
+
+        return data, torch.from_numpy(label).to(dtype=torch.long), None
