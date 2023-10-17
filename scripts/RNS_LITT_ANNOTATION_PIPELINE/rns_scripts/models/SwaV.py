@@ -2,12 +2,14 @@ import pytorch_lightning as pl
 import torch
 import torchvision
 from torch import nn
-
+from .rns_dataloader import RNS_Raw
+import os
+import random
 from lightly.loss import SwaVLoss
 from lightly.loss.memory_bank import MemoryBankModule
 from lightly.models.modules import SwaVProjectionHead, SwaVPrototypes
 from lightly.transforms.swav_transform import SwaVTransform
-
+from lightly.data import SwaVCollateFunction
 
 class SwaV(pl.LightningModule):
     def __init__(self):
@@ -16,9 +18,35 @@ class SwaV(pl.LightningModule):
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
         self.projection_head = SwaVProjectionHead(512, 512, 128)
         self.prototypes = SwaVPrototypes(128, 512, 1)
-        self.start_queue_at_epoch = 110
+        self.start_queue_at_epoch = 80
         self.queues = nn.ModuleList([MemoryBankModule(size=512) for _ in range(2)])
         self.criterion = SwaVLoss(sinkhorn_epsilon = 0.05)
+
+        data_dir = "../../../user_data/"
+        self.dir_list = os.listdir(data_dir+'rns_cache')
+        # self.patientIDs = [s for s in dir_list for type_string in ['HUP', 'RNS'] if type_string in s.upper()]
+
+    def train_dataloader(self):
+        for _ in range(100):
+            file_list = random.sample(self.dir_list,3)
+            # if self.current_epoch == 0:
+            #     file_list = ['HUP101.npy']
+            unlabeled_dataset = RNS_Raw(file_list, transform=True, astensor=False)
+
+            collate_fn = SwaVCollateFunction(gaussian_blur=0, hf_prob=0, vf_prob=0, rr_prob=0, cj_prob=0,
+                                             random_gray_scale=0, normalize={'mean': [0, 0, 0], 'std': [1, 1, 1]})
+
+            dataloader = torch.utils.data.DataLoader(
+                unlabeled_dataset,
+                batch_size=340,
+                collate_fn=collate_fn,
+                shuffle=True,
+                drop_last=True,
+                num_workers=2
+            )
+
+            if len(dataloader) < 2700:
+                return dataloader
 
     def training_step(self, batch, batch_idx):
         views = batch[0]

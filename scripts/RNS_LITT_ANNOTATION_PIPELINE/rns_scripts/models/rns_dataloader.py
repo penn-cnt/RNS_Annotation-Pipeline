@@ -15,9 +15,9 @@ class RNS_Raw(Dataset):
             temp_file = np.load(f)
 
         self.data = np.empty((0, temp_file.shape[1], temp_file.shape[2]))
-        print(self.data.shape)
+        # print(self.data.shape)
 
-        for name in tqdm(self.file_names):
+        for name in self.file_names:
             with open(data_dir + 'rns_cache/' + name, 'rb') as f:
                 cache = np.load(f)
             self.data = np.vstack((self.data, cache))
@@ -79,9 +79,24 @@ class RNS_Raw(Dataset):
             data = self.augmentation(data)
 
         else:
+            concat_len = data.shape[1] / 4
+            channel_index = np.arange(4)
+            # np.random.shuffle(channel_index)
+            channel_index = channel_index * concat_len + (concat_len - 1) / 2
+            channel_index = np.repeat(channel_index, concat_len)
+            concate_len_1 = (concat_len - 1) / 2
+            a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+            base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+            channel_index = channel_index + base_repeat
+            data = data[channel_index.astype(int)]
             data = torch.from_numpy(data).clone()
             data = data.repeat(3, 1, 1)
             data = self.totensor(data)
+
+
+            # data = torch.from_numpy(data).clone()
+            # data = data.repeat(3, 1, 1)
+            # data = self.totensor(data)
 
         return data, [], None
 

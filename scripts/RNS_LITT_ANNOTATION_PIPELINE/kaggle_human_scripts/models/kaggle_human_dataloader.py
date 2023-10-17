@@ -31,9 +31,9 @@ class KaggleDataset(Dataset):
                 T.Resize((256, 512), interpolation=T.InterpolationMode.NEAREST),
                 T.ToPILImage(),
                 T.RandomApply([T.ColorJitter()], p=0.5),
-                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                # T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
                 T.RandomInvert(p=0.2),
-                T.RandomPosterize(4, p=0.2),
+                # T.RandomPosterize(4, p=0.2),
                 T.ToTensor()
             ])
 

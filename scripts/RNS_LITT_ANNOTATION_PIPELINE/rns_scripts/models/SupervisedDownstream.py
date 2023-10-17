@@ -11,7 +11,7 @@ class SupervisedDownstream(pl.LightningModule):
     def __init__(self, backbone, unfreeze_backbone_at_epoch=100):
         super().__init__()
         self.backbone = backbone
-        self.fc1 = nn.Linear(512, 512)
+        self.fc1 = nn.Linear(2048, 512)
         self.fc2 = nn.Linear(512, 64)
         self.fc3 = nn.Linear(64, 8)
         self.fc4 = nn.Linear(8, 2)
@@ -69,10 +69,10 @@ class SupervisedDownstream(pl.LightningModule):
         return pred, label
 
     def predict_step(self, batch, batch_idx):
-        print(batch)
+        # print(batch)
         x, y = batch
         emb = self.backbone(x)
-        emb = emb.view(-1, 512)
+        emb = emb.view(-1, 2048)
         x = F.relu(self.fc1(emb))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))

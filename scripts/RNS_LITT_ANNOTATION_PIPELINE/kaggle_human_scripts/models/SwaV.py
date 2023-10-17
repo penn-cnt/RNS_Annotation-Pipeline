@@ -3,6 +3,8 @@ import torch
 import torchvision
 from torch import nn
 
+
+
 from lightly.loss import SwaVLoss
 from lightly.loss.memory_bank import MemoryBankModule
 from lightly.models.modules import SwaVProjectionHead, SwaVPrototypes
@@ -16,9 +18,13 @@ class SwaV(pl.LightningModule):
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
         self.projection_head = SwaVProjectionHead(512, 512, 128)
         self.prototypes = SwaVPrototypes(128, 512, 1)
-        self.start_queue_at_epoch = 30
+        self.start_queue_at_epoch = 200
         self.queues = nn.ModuleList([MemoryBankModule(size=512) for _ in range(2)])
         self.criterion = SwaVLoss(sinkhorn_epsilon = 0.05)
+
+
+
+
 
     def training_step(self, batch, batch_idx):
         views = batch[0]
