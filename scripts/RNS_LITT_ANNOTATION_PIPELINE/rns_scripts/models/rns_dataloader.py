@@ -10,14 +10,16 @@ class RNS_Raw(Dataset):
         self.file_names = file_names
         self.transform = transform
 
+        print('init_loading')
         file_name_temp = self.file_names[0]
         with open(data_dir + 'rns_cache/' + file_name_temp, 'rb') as f:
             temp_file = np.load(f)
 
+        print('loaded first')
         self.data = np.empty((0, temp_file.shape[1], temp_file.shape[2]))
         # print(self.data.shape)
 
-        for name in self.file_names:
+        for name in tqdm(self.file_names):
             with open(data_dir + 'rns_cache/' + name, 'rb') as f:
                 cache = np.load(f)
             self.data = np.vstack((self.data, cache))
