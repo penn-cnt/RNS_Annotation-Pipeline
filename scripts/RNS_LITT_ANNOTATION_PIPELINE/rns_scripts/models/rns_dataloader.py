@@ -185,3 +185,25 @@ class RNS_Downstream(Dataset):
             data = self.totensor(data)
 
         return data, torch.from_numpy(label).to(dtype=torch.long), None
+
+def get_data(file_names, split=0.7):
+    file_name_temp = file_names[0]
+    cache = np.load(data_dir+'rns_test_cache/' + file_name_temp, allow_pickle=True)
+    temp_file = cache.item().get('data')
+
+    train_data = np.empty((0, temp_file.shape[1], temp_file.shape[2]))
+    train_label = np.array([])
+    test_data = np.empty((0, temp_file.shape[1], temp_file.shape[2]))
+    test_label = np.array([])
+
+    for name in tqdm(file_names):
+        cache = np.load(data_dir+'rns_test_cache/' + name, allow_pickle=True)
+        data = cache.item().get('data')
+        label = cache.item().get('label')
+        split_n = int(data.shape[0] * (split))
+        train_data = np.vstack((train_data, data[:split_n]))
+        train_label = np.hstack((train_label, label[:split_n]))
+        test_data = np.vstack((test_data, data[split_n:]))
+        test_label = np.hstack((test_label, label[split_n:]))
+
+    return train_data, train_label, test_data, test_label
