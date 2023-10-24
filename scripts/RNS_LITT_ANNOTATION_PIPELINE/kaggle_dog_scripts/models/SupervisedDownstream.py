@@ -6,70 +6,84 @@ import pytorch_lightning as pl
 import pytorch_lightning.loggers as pl_loggers
 import pytorch_lightning.callbacks as pl_callbacks
 import sys
+
 sys.path.append('../tools')
 from sigmoid_loss import sigmoid_focal_loss
 
+from multi_focal_loss import FocalLoss
+
+
 class SupervisedDownstream(pl.LightningModule):
-    def __init__(self, backbone):
+    def __init__(self, backbone, input_dim = 512, unfreeze_backbone_at_epoch = -1):
         super().__init__()
+        self.input_dim = input_dim
         self.backbone = backbone
-        self.fc1 = nn.Linear(512, 256)
+        self.fc1 = nn.Linear(self.input_dim, 256)
         self.fc2 = nn.Linear(256, 64)
         self.fc3 = nn.Linear(64, 8)
-        self.fc4 = nn.Linear(8, 2)
+        self.fc4 = nn.Linear(8, 3)
+        self.dropout = nn.Dropout(p = 0.4)
         self.softmax = nn.Softmax(dim=1)
         self.alpha = 0.5
         self.gamma = 8
+        self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
+        self.enable_mc_dropout = False
+        # self.fl = FocalLoss(self.alpha, self.gamma).cuda()
 
+    def forward(self, x):
+        if self.unfreeze_backbone_at_epoch == -1 or self.current_epoch < self.unfreeze_backbone_at_epoch:
+            self.backbone.eval()
+            x = self.backbone(x)
+            with torch.no_grad():
+                emb = x.view(-1, self.input_dim)
+        else:
+            x = self.backbone(x)
+            emb = x.view(-1, self.input_dim)
 
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        self.backbone.eval()
-        x = self.backbone(x)
-        with torch.no_grad():
-            x = x.view(-1,512)
+        x = self.dropout(emb)
         x = F.relu(self.fc1(x))
+        x = self.dropout(x)
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)
         pred = self.softmax(pred)
-        label = F.one_hot(y,num_classes=2).squeeze()
-        loss = sigmoid_focal_loss(pred.float(),label.float(), alpha = self.alpha, gamma = self.gamma,reduction = 'mean')
+        return emb, pred
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        _, pred = self(x)
+        label = F.one_hot(y, num_classes=3).squeeze()
+        loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
+        # loss = self.fl(torch.FloatTensor(pred).cuda(), torch.FloatTensor(label).cuda())
         # Logging to TensorBoard (if installed) by default
         self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        x = self.backbone(x)
-        x = x.view(-1,512)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
-        pred = self.softmax(pred)
-        label = F.one_hot(y,num_classes=2).squeeze()
-        loss = sigmoid_focal_loss(pred.float(),label.float(), alpha = self.alpha, gamma = self.gamma,reduction = 'mean')
+        _, pred = self(x)
+        label = F.one_hot(y, num_classes=3).squeeze()
+        loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
+        # loss = self.fl(torch.FloatTensor(pred).cuda(), torch.FloatTensor(label).cuda())
         out = torch.argmax(pred, dim=1)
         out = out.detach().cpu().numpy()
         target = y.squeeze().detach().cpu().numpy()
-        precision,recall,fscore,support = sklearn.metrics.precision_recall_fscore_support(out, target)
-        acc=sklearn.metrics.accuracy_score(out, target)
+        precision, recall, fscore, support = sklearn.metrics.precision_recall_fscore_support(out, target,
+                                                                                             zero_division=0.0)
+        acc = sklearn.metrics.accuracy_score(out, target)
         # Logging to TensorBoard (if installed) by default
         self.log("val_loss", loss)
         self.log("val_acc", acc)
-        self.log("val_precision", precision[1])
-        self.log("val_recall", recall[1])
+        self.log("val_precision", precision[0])
+        self.log("val_recall", recall[0])
         return pred, label
 
     def predict_step(self, batch, batch_idx):
         x, y = batch
-        emb = self.backbone(x)
-        emb = emb.view(-1,512)
-        x = F.relu(self.fc1(emb))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        if self.enable_mc_dropout:
+            self.dropout.train()
+
+        emb, pred = self(x)
         # Logging to TensorBoard (if installed) by default
         return pred, y, emb
 

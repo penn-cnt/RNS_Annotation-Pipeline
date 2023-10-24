@@ -31,15 +31,33 @@ def sigmoid_focal_loss(
     # Original implementation from https://github.com/facebookresearch/fvcore/blob/master/fvcore/nn/focal_loss.py
 
     p = torch.sigmoid(inputs)
-
+    # print(p[0])
     ce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction="none")
+
     p_t = p * targets + (1 - p) * (1 - targets)
+    # print(p_t[0])
     loss = ce_loss * ((1 - p_t) ** gamma)
+    # print(ce_loss[0])
+    # print(loss[0])
+
+
+    # print(p[0])
+    # ce_loss = F.cross_entropy(inputs, targets, reduction="none")
+    # print(ce_loss[0])
+    # p_t = p * targets + (1 - p) * (1 - targets)
+    # print(p_t[0])
+    # print(((1 - p_t) ** gamma).shape)
+    # print(ce_loss.shape)
+    # loss = ce_loss & ((1 - p_t) ** gamma)
 
     if alpha >= 0:
         alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
         loss = alpha_t * loss
 
+    loss = 100*loss
+    # print(loss[0])
+    #
+    # print('========================')
     # Check reduction option and return loss accordingly
     if reduction == "none":
         pass
