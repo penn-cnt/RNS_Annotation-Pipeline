@@ -99,7 +99,7 @@ class Net:
     def predict_prob_dropout(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
         prediction_list = []
-        for _ in n_drop:
+        for _ in range(n_drop):
             prediction_list.append(self.run_prediction(data))
 
         m = nn.Softmax(dim=1)
@@ -113,8 +113,7 @@ class Net:
             probs = m(pred_raw)
             output_list_list.append(probs)
 
-        prob_dp = torch.vstack(output_list_list)
-        prob_dp = torch.mean(prob_dp, dim=0)
+        prob_dp = torch.mean(torch.stack(output_list_list), dim=0)
         self.net.enable_mc_dropout = False
 
         return prob_dp
@@ -122,7 +121,7 @@ class Net:
     def predict_prob_dropout_split(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
         prediction_list = []
-        for _ in n_drop:
+        for _ in range(n_drop):
             prediction_list.append(self.run_prediction(data))
 
         m = nn.Softmax(dim=1)
@@ -136,7 +135,7 @@ class Net:
             probs = m(pred_raw)
             output_list_list.append(probs)
 
-        prob_dp = torch.vstack(output_list_list)
+        prob_dp = torch.stack(output_list_list)
         self.net.enable_mc_dropout = False
 
         return prob_dp
