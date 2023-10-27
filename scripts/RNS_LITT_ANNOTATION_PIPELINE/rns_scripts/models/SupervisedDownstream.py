@@ -32,7 +32,7 @@ class SupervisedDownstream(pl.LightningModule):
             x = self.backbone(x)
             x = x.view(-1, 2048)
         x = F.relu(self.fc1(x))
-        x = self.dp(x)
+        # x = self.dp(x)
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)
