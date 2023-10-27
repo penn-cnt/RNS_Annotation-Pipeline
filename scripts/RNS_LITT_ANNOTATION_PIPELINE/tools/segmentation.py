@@ -62,7 +62,7 @@ def get_windowed_ind(start_data_ind, end_data_ind, fs, window_length, window_dis
         try:
             windowed_data_ind = dummy_sequence[start_stop_ind]
         except:
-            print()
+            print('bla')
         windowed_ind_list.append(windowed_data_ind)
 
     return windowed_ind_list

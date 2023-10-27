@@ -10,8 +10,6 @@ import sys
 sys.path.append('../tools')
 from sigmoid_loss import sigmoid_focal_loss
 
-from multi_focal_loss import FocalLoss
-
 
 class SupervisedDownstream(pl.LightningModule):
     def __init__(self, backbone, input_dim = 512, unfreeze_backbone_at_epoch = -1):

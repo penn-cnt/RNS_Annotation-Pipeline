@@ -55,6 +55,7 @@ class SupervisedDownstream(pl.LightningModule):
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
         out = torch.argmax(pred, dim=1)
+        # print(out.size)
         out = out.detach().cpu().numpy()
         target = y.squeeze().detach().cpu().numpy()
         precision, recall, fscore, support = sklearn.metrics.precision_recall_fscore_support(out, target,labels = [0,1],zero_division=0)

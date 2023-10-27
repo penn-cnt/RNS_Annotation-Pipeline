@@ -41,7 +41,7 @@ class Net:
                                                            dirpath=ckpt_folder_root + 'active_checkpoints_'
                                                                    + self.params['strategy_name'],
                                                            save_top_k=-1,
-                                                           every_n_epochs=20,
+                                                           every_n_epochs=10,
                                                            save_on_train_epoch_end=True)
 
         csv_logger = pl_loggers.CSVLogger(log_folder_root + "active_logs_" + self.params['strategy_name'],
@@ -54,7 +54,7 @@ class Net:
                              devices=1,
                              log_every_n_steps=10,
                              precision=16,
-                             check_val_every_n_epoch=20,
+                             check_val_every_n_epoch=10,
                              enable_model_summary=False,
                              )
 
