@@ -152,4 +152,32 @@ class Net:
         return emb
 
     def get_grad_embeddings(self, data):
-        pass
+        predictions = self.run_prediction(data)
+        output_list = []
+        emb_list = []
+        m = nn.Softmax(dim=1)
+        for pred, y, emb in predictions:
+            output_list.append(pred)
+            emb_list.append(emb)
+
+        emb = torch.vstack(emb_list)
+        out = emb.data.cpu().numpy()
+        pred_raw = torch.vstack(output_list)
+        batchProbs = m(pred_raw).data.cpu().numpy()
+        maxInds = np.argmax(batchProbs, 1)
+
+        nLab = batchProbs.shape[1]
+        embDim = emb.shape[1]
+        embeddings = np.zeros([len(data), embDim * nLab])
+
+        for j in range(len(data)):
+            for c in range(nLab):
+                if c == maxInds[j]:
+                    embeddings[j][embDim * c: embDim * (c + 1)] = deepcopy(out[j]) * (
+                            1 - batchProbs[j][c]) * -1.0
+                else:
+                    embeddings[j][embDim * c: embDim * (c + 1)] = deepcopy(out[j]) * (
+                            -1 * batchProbs[j][c]) * -1.0
+
+        return embeddings
+
