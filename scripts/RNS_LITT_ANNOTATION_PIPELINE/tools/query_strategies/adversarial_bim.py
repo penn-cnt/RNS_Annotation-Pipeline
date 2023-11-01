@@ -14,7 +14,7 @@ class AdversarialBIM(Strategy):
         nx.requires_grad_()
         eta = torch.zeros(nx.shape)
 
-        out, e1 = self.net.clf(nx+eta)
+        e1, out = self.net.net(nx+eta)
         py = out.max(1)[1]
         ny = out.max(1)[1]
         while py.item() == ny.item():
@@ -24,7 +24,7 @@ class AdversarialBIM(Strategy):
             eta += self.eps * torch.sign(nx.grad.data)
             nx.grad.data.zero_()
 
-            out, e1 = self.net.clf(nx+eta)
+            e1, out = self.net.net(nx+eta)
             py = out.max(1)[1]
 
         return (eta*eta).sum()
@@ -32,15 +32,15 @@ class AdversarialBIM(Strategy):
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
 
-        self.net.clf.cpu()
-        self.net.clf.eval()
+        self.net.net.cpu()
+        self.net.net.eval()
         dis = np.zeros(unlabeled_idxs.shape)
 
         for i in tqdm(range(len(unlabeled_idxs)), ncols=100):
             x, y, idx = unlabeled_data[i]
             dis[i] = self.cal_dis(x)
 
-        self.net.clf.cuda()
+        self.net.net.cuda()
 
         return unlabeled_idxs[dis.argsort()[:n]]
 
