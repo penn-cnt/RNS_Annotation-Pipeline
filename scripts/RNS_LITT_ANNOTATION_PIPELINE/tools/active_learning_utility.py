@@ -1,6 +1,6 @@
 from query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
 								LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
-								KMeansSampling, KCenterGreedy, KCenterGreedyPCA, BALDDropout,  \
+								KMeansSampling, KMeansSamplingGPU, KCenterGreedy, KCenterGreedyPCA, BALDDropout,  \
 								AdversarialBIM, AdversarialDeepFool, VarRatio, MeanSTD, BadgeSampling, CEALSampling, \
 								LossPredictionLoss, VAAL, WAAL
 

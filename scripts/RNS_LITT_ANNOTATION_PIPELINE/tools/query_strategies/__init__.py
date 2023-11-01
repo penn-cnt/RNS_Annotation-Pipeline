@@ -12,7 +12,7 @@ from .adversarial_bim import AdversarialBIM
 from .adversarial_deepfool import AdversarialDeepFool
 
 from .kcenter_greedy_pca import KCenterGreedyPCA
-# from .kmeans_sampling_gpu import KMeansSamplingGPU
+from .kmeans_sampling_gpu import KMeansSamplingGPU
 from .var_ratio import VarRatio
 from .mean_std import MeanSTD
 from .badge_sampling import BadgeSampling
