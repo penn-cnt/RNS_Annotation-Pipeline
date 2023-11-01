@@ -4,11 +4,6 @@
 # In[1]:
 
 
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('matplotlib', 'widget')
-
-
 # In[2]:
 
 
@@ -39,7 +34,7 @@ warnings.filterwarnings("ignore", ".*Set a lower value for log_every_n_steps if 
 data_dir = "../../../user_data/competition_data/clips"
 log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
-strategy_name = 'MarginSampling'
+strategy_name = 'MarginSamplingDropout'
 
 targets = [
     'Dog_1',
@@ -79,9 +74,9 @@ args_task = {'n_epoch': 100,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
-             'loader_tr_args': {'batch_size': 256, 'num_workers': 0, 'collate_fn': collate_fn,
+             'loader_tr_args': {'batch_size': 256, 'num_workers': 4, 'collate_fn': collate_fn,
                                 'drop_last': True},
-             'loader_te_args': {'batch_size': 256, 'num_workers': 0, 'collate_fn': collate_fn,
+             'loader_te_args': {'batch_size': 256, 'num_workers': 4, 'collate_fn': collate_fn,
                                 'drop_last': True}
              }
 
@@ -125,9 +120,6 @@ net = Net(model, args_task, device)
 
 
 # In[19]:
-
-
-type(net)
 
 
 # In[20]:
