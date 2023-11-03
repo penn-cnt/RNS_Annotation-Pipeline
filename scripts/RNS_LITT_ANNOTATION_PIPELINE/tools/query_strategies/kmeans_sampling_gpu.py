@@ -11,7 +11,7 @@ class KMeansSamplingGPU(Strategy):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
         embeddings = self.get_embeddings(unlabeled_data)
 
-        cluster_learner = KMeans(n_clusters=n,init_method ='++')
+        cluster_learner = KMeans(n_clusters=n, init_method='k-means++')
         cluster_learner.fit(embeddings)
 
         cluster_idxs = cluster_learner.predict(embeddings)

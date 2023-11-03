@@ -10,9 +10,9 @@ class AdversarialDeepFool(Strategy):
         self.max_iter = max_iter
 
     def cal_dis(self, x):
-        nx = torch.unsqueeze(x, 0)
+        nx = torch.unsqueeze(x, 0).cuda()
         nx.requires_grad_()
-        eta = torch.zeros(nx.shape)
+        eta = torch.zeros(nx.shape).cuda()
 
         e1, out = self.net.net(nx+eta)
         n_class = out.shape[1]
@@ -37,10 +37,10 @@ class AdversarialDeepFool(Strategy):
 
                 wi = grad_i - grad_np
                 fi = out[0, i] - out[0, py]
-                value_i = np.abs(fi.item()) / np.linalg.norm(wi.numpy().flatten())
+                value_i = np.abs(fi.item()) / np.linalg.norm(wi.cpu().numpy().flatten())
 
                 if value_i < value_l:
-                    ri = value_i/np.linalg.norm(wi.numpy().flatten()) * wi
+                    ri = value_i/np.linalg.norm(wi.cpu().numpy().flatten()) * wi
 
             eta += ri.clone()
             nx.grad.data.zero_()
@@ -53,9 +53,11 @@ class AdversarialDeepFool(Strategy):
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
 
-        self.net.net.cpu()
+        # self.net.net.cpu()
+        self.net.net.cuda()
         self.net.net.eval()
         dis = np.zeros(unlabeled_idxs.shape)
+        self.net.net.freeze_backbone = False
 
         for i in tqdm(range(len(unlabeled_idxs)), ncols=100):
             x, y, idx = unlabeled_data[i]

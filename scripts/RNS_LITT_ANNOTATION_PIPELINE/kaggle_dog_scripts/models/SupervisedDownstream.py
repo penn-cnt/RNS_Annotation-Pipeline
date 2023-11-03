@@ -26,10 +26,12 @@ class SupervisedDownstream(pl.LightningModule):
         self.gamma = 8
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
         self.enable_mc_dropout = False
+        self.automatic_optimization = True
+        self.freeze_backbone = True
         # self.fl = FocalLoss(self.alpha, self.gamma).cuda()
 
     def forward(self, x):
-        if self.unfreeze_backbone_at_epoch == -1 or self.current_epoch < self.unfreeze_backbone_at_epoch:
+        if self.freeze_backbone == True:
             self.backbone.eval()
             x = self.backbone(x)
             with torch.no_grad():
@@ -37,6 +39,7 @@ class SupervisedDownstream(pl.LightningModule):
         else:
             x = self.backbone(x)
             emb = x.view(-1, self.input_dim)
+
 
         x = self.dropout(emb)
         x = F.relu(self.fc1(x))
@@ -48,6 +51,10 @@ class SupervisedDownstream(pl.LightningModule):
         return emb, pred
 
     def training_step(self, batch, batch_idx):
+        if self.unfreeze_backbone_at_epoch == -1 or self.current_epoch < self.unfreeze_backbone_at_epoch:
+            self.freeze_backbone = True
+        else:
+            self.freeze_backbone = False
         x, y = batch
         _, pred = self(x)
         label = F.one_hot(y, num_classes=3).squeeze()
@@ -88,3 +95,27 @@ class SupervisedDownstream(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
+
+    def cal_dis(self, x):
+        self.eval()
+        eps = 0.05
+        nx = torch.unsqueeze(x, 0).cuda()
+        nx.requires_grad_()
+        nx.grad
+        eta = torch.zeros(nx.shape).cuda()
+
+        _, out = self(nx+eta)
+        py = out.max(1)[1]
+        ny = out.max(1)[1]
+
+        # while py.item() == ny.item():
+        celoss = nn.CrossEntropyLoss()
+        loss = celoss(out, ny)
+        self.manual_backward(loss)
+        eta += eps * torch.sign(nx.grad.data)
+        nx.grad.data.zero_()
+
+        e1, out = self.net.net(nx+eta)
+        py = out.max(1)[1]
+
+        return (eta*eta).sum()
