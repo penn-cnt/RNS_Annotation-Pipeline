@@ -80,7 +80,7 @@ class Net:
         for pred, y, emb in predictions:
             output_list.append(pred)
 
-        pred_raw = torch.vstack(output_list)
+        pred_raw = torch.vstack(output_list).float()
         out = torch.argmax(pred_raw, dim=1)
         return out
 
@@ -92,7 +92,7 @@ class Net:
         for pred, y, emb in predictions:
             output_list.append(pred)
 
-        pred_raw = torch.vstack(output_list)
+        pred_raw = torch.vstack(output_list).float()
         probs = m(pred_raw)
         return probs
 
@@ -109,7 +109,7 @@ class Net:
             output_list = []
             for pred, y, emb in predictions:
                 output_list.append(pred)
-            pred_raw = torch.vstack(output_list)
+            pred_raw = torch.vstack(output_list).float()
             probs = m(pred_raw)
             output_list_list.append(probs)
 
@@ -131,7 +131,7 @@ class Net:
             output_list = []
             for pred, y, emb in predictions:
                 output_list.append(pred)
-            pred_raw = torch.vstack(output_list)
+            pred_raw = torch.vstack(output_list).float()
             probs = m(pred_raw)
             output_list_list.append(probs)
 
@@ -148,7 +148,7 @@ class Net:
         emb_list = []
         for pred, y, emb in predictions:
             emb_list.append(emb)
-        emb = torch.vstack(emb_list)
+        emb = torch.vstack(emb_list).float()
         return emb
 
     def get_grad_embeddings(self, data):

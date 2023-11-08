@@ -2,7 +2,8 @@ from query_strategies import RandomSampling, LeastConfidence, MarginSampling, En
 								LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
 								KMeansSampling, KMeansSamplingGPU, KCenterGreedy, KCenterGreedyPCA, BALDDropout,  \
 								AdversarialBIM, AdversarialDeepFool, VarRatio, MeanSTD, BadgeSampling, CEALSampling, \
-								LossPredictionLoss, VAAL, WAAL
+								LossPredictionLoss, VAAL, WAAL,\
+								LeastConfidenceRNS, EntropySamplingRNS
 
 def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data = False):
 	if rns_data == False:
@@ -56,11 +57,11 @@ def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data = 
 		if STRATEGY_NAME == 'RandomSampling':
 			return RandomSampling(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'LeastConfidence':
-			return LeastConfidence(dataset, net, args_input, args_task)
+			return LeastConfidenceRNS(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'MarginSampling':
 			return MarginSampling(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'EntropySampling':
-			return EntropySampling(dataset, net, args_input, args_task)
+			return EntropySamplingRNS(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'LeastConfidenceDropout':
 			return LeastConfidenceDropout(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'MarginSamplingDropout':
