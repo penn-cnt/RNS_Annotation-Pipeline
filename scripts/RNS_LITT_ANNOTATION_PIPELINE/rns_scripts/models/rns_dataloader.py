@@ -347,6 +347,13 @@ def get_data_by_episode(file_names, split=0.7):
         index = cache.item().get('indices')
         patientID = cache.item().get('patientID')
 
+        # print(name)
+        # print(data.shape)
+        # print(label.shape)
+        # print(index.shape)
+        # print(patientID.shape)
+        # print('=====================')
+
         index = np.hstack((patientID[:, np.newaxis], index.astype(int)))
         index = rfn.unstructured_to_structured(index,
                                                      np.dtype([('patient_index', '|S10'), ('episode_index', 'int32'),

@@ -3,10 +3,10 @@
 
 # In[1]:
 
-
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('matplotlib', 'widget')
+#
+# get_ipython().run_line_magic('load_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('matplotlib', 'widget')
 
 
 # In[2]:
@@ -15,6 +15,7 @@ get_ipython().run_line_magic('matplotlib', 'widget')
 import numpy as np
 import random
 import sys
+
 sys.path.append('../tools')
 
 import os
@@ -37,8 +38,8 @@ from models.SupervisedDownstream import SupervisedDownstream
 import warnings
 
 warnings.filterwarnings("ignore", ".*Consider increasing the value of the `num_workers` argument*")
-warnings.filterwarnings("ignore", ".*Set a lower value for log_every_n_steps if you want to see logs for the training epoch*")
-
+warnings.filterwarnings("ignore",
+                        ".*Set a lower value for log_every_n_steps if you want to see logs for the training epoch*")
 
 # In[3]:
 
@@ -56,7 +57,6 @@ if torch.cuda.is_available():
     # False ensures CUDA select the same algorithm each time the application is run
     torch.backends.cudnn.benchmark = False
 
-
 # In[4]:
 
 
@@ -64,12 +64,10 @@ data_dir = "../../../user_data/"
 log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
 
-
 # In[5]:
 
 
 strategy_name = 'RandomSampling'
-
 
 # In[6]:
 
@@ -77,7 +75,6 @@ strategy_name = 'RandomSampling'
 nStart = 1
 nEnd = 20
 nQuery = 2
-
 
 # In[7]:
 
@@ -92,24 +89,26 @@ args_task = {'n_epoch': 100,
                                 'drop_last': True}
              }
 
-
 # In[8]:
 
-
-raw_annotations = pd.read_csv(data_dir + 'full_updated_anns_annotTbl_cleaned.csv')
-ids = list(np.unique(raw_annotations[raw_annotations['descriptions'].notnull()]['HUP_ID']))
-# ids = list(np.unique(raw_annotations['HUP_ID']))
-
-data_import = data_utility.read_files(path=data_dir+'rns_data', path_data=data_dir+'rns_raw_cache', patientIDs=ids,
-                                      verbose=True)  # Import data with annotation
+#
+# raw_annotations = pd.read_csv(data_dir + 'full_updated_anns_annotTbl_cleaned.csv')
+# ids = list(np.unique(raw_annotations[raw_annotations['descriptions'].notnull()]['HUP_ID']))
+# # ids = list(np.unique(raw_annotations['HUP_ID']))
+#
+# data_import = data_utility.read_files(path=data_dir+'rns_data', path_data=data_dir+'rns_raw_cache', patientIDs=ids,
+#                                       verbose=True)  # Import data with annotation
 
 
 # In[9]:
 
 
-data_list = os.listdir(data_dir+'rns_test_cache')[1:]
+# data_list = os.listdir(data_dir+'rns_test_cache')
 
-X_train, y_train, X_test, y_test, index_train, index_test  = get_data_by_episode(data_list, split=0.8)
+data_list = ['HUP047.npy', 'HUP084.npy', 'HUP096.npy', 'HUP109.npy', 'HUP121.npy', 'HUP129.npy', 'HUP131.npy',
+             'HUP137.npy', 'HUP147.npy', 'HUP156.npy', 'HUP159.npy', 'HUP182.npy', 'HUP197.npy', 'HUP199.npy',
+             'RNS026.npy', 'RNS029.npy']
+X_train, y_train, X_test, y_test, index_train, index_test = get_data_by_episode(data_list, split=0.8)
 # data, label,_,_ = get_data(data_list, split=1)
 # train_data, test_data, train_label, test_label = sklearn.model_selection.train_test_split(data, label, test_size=0.8, random_state=42)
 
@@ -117,7 +116,6 @@ print(X_train.shape)
 print(y_train.shape)
 print(X_test.shape)
 print(y_test.shape)
-
 
 # In[10]:
 
@@ -136,12 +134,10 @@ print(NUM_INIT_LB)
 print(NUM_QUERY)
 print(NUM_ROUND)
 
-
 # In[11]:
 
 
 dataset = Data(X_train, y_train, X_test, y_test, RNS_Active, args_task)
-
 
 # In[12]:
 
@@ -152,14 +148,12 @@ model = SupervisedDownstream(swav.backbone)
 # initialize model and save the model state
 modelstate = deepcopy(model.state_dict())
 device = "cuda" if torch.cuda.is_available() else "cpu"
-net = Net(model, args_task, device, ckpt_folder_root = 'rns_active', log_folder_root = 'rns_active')
-
+net = Net(model, args_task, device, ckpt_folder_root='rns_active', log_folder_root='rns_active')
 
 # In[13]:
 
 
 strategy = get_strategy(strategy_name, dataset, net, None, args_task)
-
 
 # In[ ]:
 
@@ -168,15 +162,13 @@ strategy = get_strategy(strategy_name, dataset, net, None, args_task)
 dataset.initialize_labels(NUM_INIT_LB)
 strategy.train()
 
-
 # In[ ]:
 
 
-for rd in range(1, NUM_ROUND +1):
+for rd in range(1, NUM_ROUND + 1):
     print('round ' + str(rd))
     q_idxs = strategy.query(NUM_QUERY)
     strategy.update(q_idxs)
     strategy.net.round = rd
     strategy.net.net.load_state_dict(modelstate)
     strategy.train()
-

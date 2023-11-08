@@ -5,10 +5,10 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 import numpy as np
-import matplotlib
+# import matplotlib
 from sklearn.metrics import accuracy_score
 
-matplotlib.use("nbAgg")
+# matplotlib.use("nbAgg")
 import times
 
 path = 'data'
