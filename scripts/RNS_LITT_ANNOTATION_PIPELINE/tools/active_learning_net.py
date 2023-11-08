@@ -13,9 +13,6 @@ import pytorch_lightning as pl
 import pytorch_lightning.loggers as pl_loggers
 import pytorch_lightning.callbacks as pl_callbacks
 
-log_folder_root = '../../../user_data/logs/kaggle_dog_active/'
-ckpt_folder_root = '../../../user_data/checkpoints/kaggle_dog_active/'
-
 
 def collate_fn(batch):
     info = list(zip(*batch))
@@ -26,25 +23,28 @@ def collate_fn(batch):
 
 
 class Net:
-    def __init__(self, net, params, device):
+    def __init__(self, net, params, device, log_folder_root='kaggle_dog_active',
+                 ckpt_folder_root='kaggle_dog_active'):
         self.net = net
         self.params = params
         self.device = device
         self.round = 0
         self.trainer = None
+        self.log_folder_root = '../../../user_data/logs/' + log_folder_root + '/'
+        self.ckpt_folder_root = '../../../user_data/checkpoints/' + ckpt_folder_root + '/'
 
     def train(self, data, test_data=None):
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=
                                                            self.params['strategy_name'] + '_round_' + str(self.round)
                                                            + '-{epoch:02d}-{train_loss:.5f}',
-                                                           dirpath=ckpt_folder_root + 'active_checkpoints_'
+                                                           dirpath=self.ckpt_folder_root + 'active_checkpoints_'
                                                                    + self.params['strategy_name'],
                                                            save_top_k=-1,
                                                            every_n_epochs=10,
                                                            save_on_train_epoch_end=True)
 
-        csv_logger = pl_loggers.CSVLogger(log_folder_root + "active_logs_" + self.params['strategy_name'],
+        csv_logger = pl_loggers.CSVLogger(self.log_folder_root + "active_logs_" + self.params['strategy_name'],
                                           name='logger_round_' + str(self.round))
 
         trainer = pl.Trainer(logger=csv_logger,
@@ -180,4 +180,3 @@ class Net:
                             -1 * batchProbs[j][c]) * -1.0
 
         return embeddings
-
