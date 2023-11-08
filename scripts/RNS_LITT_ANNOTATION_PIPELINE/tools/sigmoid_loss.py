@@ -54,7 +54,6 @@ def sigmoid_focal_loss(
         alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
         loss = alpha_t * loss
 
-    loss = 100*loss
     # print(loss[0])
     #
     # print('========================')
