@@ -53,7 +53,7 @@ class Net:
                              accelerator='gpu',
                              devices=1,
                              log_every_n_steps=10,
-                             # precision=16,
+                             precision=16,
                              check_val_every_n_epoch=10,
                              enable_model_summary=False,
                              )
