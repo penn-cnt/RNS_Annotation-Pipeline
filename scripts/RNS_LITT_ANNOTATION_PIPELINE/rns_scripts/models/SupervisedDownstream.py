@@ -84,5 +84,5 @@ class SupervisedDownstream(pl.LightningModule):
         return pred, y, emb
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-2, weight_decay=0.001)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
