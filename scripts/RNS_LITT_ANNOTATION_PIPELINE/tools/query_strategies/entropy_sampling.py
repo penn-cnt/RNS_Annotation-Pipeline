@@ -23,9 +23,7 @@ class EntropySamplingRNS(Strategy):
         probs = self.predict_prob(unlabeled_data)
         log_probs = torch.log(probs)
         uncertainties = (probs * log_probs).sum(1)
-
         metric_array = self.episode_arrange(uncertainties, index, unlabeled_idxs)
-
         return unlabeled_idxs[torch.sort(metric_array)[1][:n]]
 
     def episode_arrange(self, metric, index, unlabeled_idxs):
