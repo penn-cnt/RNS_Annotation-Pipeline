@@ -4,7 +4,7 @@ import random
 import os
 import sklearn
 
-
+np.random.seed(42)
 
 class Data:
     def __init__(self, X_train, Y_train, X_test, Y_test, handler, args_task):
