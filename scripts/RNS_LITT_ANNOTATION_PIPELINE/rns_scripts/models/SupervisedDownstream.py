@@ -11,14 +11,15 @@ class SupervisedDownstream(pl.LightningModule):
     def __init__(self, backbone, unfreeze_backbone_at_epoch=100):
         super().__init__()
         self.backbone = backbone
-        self.fc1 = nn.Linear(2048, 512)
+        self.fc1 = nn.Linear(2048, 64)
+        # self.fc2 = nn.Linear(1024, 512)
         self.dp = nn.Dropout1d(p=0.2)
-        self.fc2 = nn.Linear(512, 64)
-        self.fc3 = nn.Linear(64, 8)
-        self.fc4 = nn.Linear(8, 2)
+        # self.fc3 = nn.Linear(512, 64)
+        self.fc4 = nn.Linear(64, 8)
+        self.fc5 = nn.Linear(8, 2)
         self.softmax = nn.Softmax(dim=1)
         self.alpha = 0.5
-        self.gamma = 4
+        self.gamma = 8
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
 
     def training_step(self, batch, batch_idx):
@@ -32,10 +33,10 @@ class SupervisedDownstream(pl.LightningModule):
             x = self.backbone(x)
             x = x.view(-1, 2048)
         x = F.relu(self.fc1(x))
-        # x = self.dp(x)
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        # x = F.relu(self.fc2(x))
+        # x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        pred = self.fc5(x)
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
@@ -48,9 +49,10 @@ class SupervisedDownstream(pl.LightningModule):
         x = self.backbone(x)
         x = x.view(-1, 2048)
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        # x = F.relu(self.fc2(x))
+        # x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        pred = self.fc5(x)
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
@@ -79,7 +81,8 @@ class SupervisedDownstream(pl.LightningModule):
         x = F.relu(self.fc1(emb))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        x = F.relu(self.fc4(x))
+        pred = self.fc5(x)
         # Logging to TensorBoard (if installed) by default
         return pred, y, emb
 
