@@ -4,9 +4,9 @@
 # In[1]:
 
 
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('matplotlib', 'widget')
+# get_ipython().run_line_magic('load_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('matplotlib', 'widget')
 
 
 # In[2]:
@@ -150,10 +150,16 @@ dataset = Data(X_train, y_train, X_test, y_test, RNS_Downstream, args_task)
 
 
 # In[18]:
+import torchvision
+from torch import nn
+ckpt = torch.load(ckpt_folder_root + "checkpoint31.pth")
+# resnet = torchvision.models.resnet50()
+# backbone = nn.Sequential(*list(resnet.children())[:-1])
+# swav = SwaV(backbone)
+# swav.load_state_dict(ckpt['model_state_dict'])
 
-
-swav = SwaV().load_from_checkpoint(
-    ckpt_folder_root + 'rns_swav_50_12/rns_swav-epoch=82-swav_loss=2.58204.ckpt')
+swav = SwaV()
+swav.load_state_dict(ckpt['model_state_dict'])
 model = SupervisedDownstream(swav.backbone)
 # initialize model and save the model state
 modelstate = deepcopy(model.state_dict())

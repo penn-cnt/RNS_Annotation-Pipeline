@@ -31,6 +31,10 @@ class Strategy:
         if model_name == None:
             if data == None:
                 labeled_idxs, labeled_data = self.dataset.get_labeled_data()
+                # print([d.shape for d in labeled_data.data])
+                #
+                #
+                # print([d.shape for d in self.dataset.get_test_data().data])
                 self.net.train(labeled_data, self.dataset.get_test_data())
             else:
                 self.net.train(data)

@@ -64,6 +64,7 @@ class Net:
         if test_data is not None:
             testloader = DataLoader(test_data, shuffle=False, **self.params['loader_te_args'])
             loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])
+
             self.trainer.fit(self.net, loader, testloader)
         else:
             loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])

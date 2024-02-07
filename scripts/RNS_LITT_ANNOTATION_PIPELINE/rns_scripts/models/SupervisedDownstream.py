@@ -45,7 +45,6 @@ class SupervisedDownstream(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         x = self.backbone(x)
-        x = self.backbone(x)
         x = x.view(-1, 2048)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

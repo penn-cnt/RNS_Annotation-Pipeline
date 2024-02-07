@@ -59,7 +59,7 @@ pytorch_lightning.utilities.seed.seed_everything(seed=random_seed, workers=True)
 data_dir = "../../../user_data/"
 log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
-strategy_name = 'RandomSampling'
+strategy_name = 'LeastConfidence'
 
 
 # In[6]:
@@ -148,7 +148,7 @@ modelstate = deepcopy(model.state_dict())
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-net = Net(model, args_task, device, ckpt_folder_root = 'rns_active', log_folder_root = 'rns_active')
+net = Net(model, args_task, device, ckpt_folder_root = 'rns_active_episode', log_folder_root = 'rns_active_episode')
 
 
 # In[13]:
