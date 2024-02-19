@@ -7,6 +7,19 @@ import numpy.lib.recfunctions as rfn
 
 data_dir = "../../../user_data/"
 
+class RNSDataset(Dataset):
+    def __init__(self, sliced_data, transform=False):
+        # load data
+        self.data = torch.tensor(np.vstack(sliced_data))
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        sample_data = self.data[idx]
+
+        return sample_data.transpose(1,0), idx
 
 class RNS_Raw(Dataset):
     def __init__(self, file_names, transform=True, astensor=True):

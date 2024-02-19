@@ -17,8 +17,8 @@ class SupervisedDownstream(pl.LightningModule):
         self.fc3 = nn.Linear(64, 8)
         self.fc4 = nn.Linear(8, 2)
         self.softmax = nn.Softmax(dim=1)
-        self.alpha = 0.5
-        self.gamma = 8
+        self.alpha = 0.2
+        self.gamma = 5
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
 
     def training_step(self, batch, batch_idx):

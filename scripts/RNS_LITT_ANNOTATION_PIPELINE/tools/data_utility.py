@@ -302,7 +302,8 @@ class PatientInfo:
 
     def normalize_windowed_data(self, dmin=-512, dmax=511):
         self.windowed_data = preprocess.normalize(self.windowed_data, dmin, dmax)
-
+    def normalize_data(self, dmin=-512, dmax=511):
+        self.data = (self.data - dmin) / (dmax - dmin)
     def get_windowed_annotation(self, class_n=2):
         '''
         get annotations associated with the windowed clip
