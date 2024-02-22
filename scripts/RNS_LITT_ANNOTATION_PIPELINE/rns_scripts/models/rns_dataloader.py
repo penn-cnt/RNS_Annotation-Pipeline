@@ -7,19 +7,88 @@ import numpy.lib.recfunctions as rfn
 
 data_dir = "../../../user_data/"
 
+class RandomCrop(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        output_size (tuple or int): Desired output size. If int, square crop
+            is made.
+    """
+    def __init__(self, out_length):
+        self.out_length = out_length
+    def __call__(self, sample):
+
+        slice_length = np.random.choice(np.arange(5,9)*250)
+        start_slice = np.random.randint(low=0, high=self.out_length - slice_length)
+        padded_tensor = torch.zeros_like(sample)
+        sample = T.functional.crop(sample, 0, start_slice, 4, slice_length)
+
+
+        if np.random.choice([True, False]):
+            padded_tensor[:, padded_tensor.size()[-1]-sample.size()[-1]:] = sample
+        else:
+            padded_tensor[:, :sample.size()[-1]] = sample
+
+
+        return padded_tensor
+
 class RNSDataset(Dataset):
-    def __init__(self, sliced_data, transform=False):
+    def __init__(self, sliced_data,transform=False):
         # load data
         self.data = torch.tensor(np.vstack(sliced_data))
+        # self.data = sliced_data
         self.transform = transform
+
+        self.augmentation = T.Compose([
+            T.ToPILImage(),
+            # T.RandomApply([T.ColorJitter()], p=0.5),
+            # T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+            # T.RandomApply([RandomCrop(self.data.size()[1])], p=0.2),
+            # T.RandomInvert(p=0.2),
+            # T.RandomPosterize(4, p=0.2),
+            T.ToTensor(),
+        ])
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        sample_data = self.data[idx]
+        sample_data = self.data[idx].transpose(1,0)
 
-        return sample_data.transpose(1,0), idx
+        if self.transform:
+            sample_data = self.augmentation(sample_data).squeeze(0)
+
+        return sample_data, idx
+
+class RNSDatasetDownStream(Dataset):
+    def __init__(self, sliced_data,label,transform=False):
+        # load data
+        # self.data = torch.tensor(np.vstack(sliced_data))
+        self.data = sliced_data
+        self.label = label
+        self.transform = transform
+
+        self.augmentation = T.Compose([
+            T.ToPILImage(),
+            # T.RandomApply([T.ColorJitter()], p=0.5),
+            # T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+            # T.RandomApply([RandomCrop(self.data.size()[1])], p=0.2),
+            # T.RandomInvert(p=0.2),
+            # T.RandomPosterize(4, p=0.2),
+            T.ToTensor(),
+        ])
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        sample_data = self.data[idx].transpose(1,0)
+        sample_label = self.label[idx]
+
+        if self.transform:
+            sample_data = self.augmentation(sample_data).squeeze(0)
+
+        return sample_data, torch.tensor(sample_label), idx
 
 class RNS_Raw(Dataset):
     def __init__(self, file_names, transform=True, astensor=True):
@@ -298,6 +367,7 @@ def collate_fn(batch):
 def get_data(file_names, split=0.7):
     file_name_temp = file_names[0]
     cache = np.load(data_dir + 'rns_test_cache/' + file_name_temp, allow_pickle=True)
+
     temp_file = cache.item().get('data')
 
     train_data = np.empty((0, temp_file.shape[1], temp_file.shape[2]))

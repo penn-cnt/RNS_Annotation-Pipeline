@@ -11,6 +11,9 @@ import nltk
 from os.path import exists
 from tqdm import tqdm
 import gc
+import h5py
+
+data_dir = "../../../user_data/"
 
 seizure_token_dict = {
     "seizure": "Seizure",
@@ -32,60 +35,7 @@ seizure_token_dict = {
 }
 
 
-# def read_files(path='data', patientIDs=None, patient_type=['HUP', 'RNS'], annotation_only=False, verbose=False):
-#     data = {}
-#
-#     if patientIDs == None or patientIDs == []:
-#         dir_list = os.listdir(path)
-#         patientIDs = [s for s in dir_list for type_string in patient_type if type_string in s.upper()]
-#     if annotation_only == True:
-#         dir_list = os.listdir(path)
-#         patientIDs = [s for s in dir_list if exists(path + "/" + s + "/annots.mat")]
-#
-#     for id in tqdm(patientIDs, disable=not verbose):
-#         annot_dict = {}
-#         try:
-#             with h5py.File(path + "/" + id + "/Device_Data.mat", "r") as f:
-#                 data_key = list(f.keys())[0]
-#                 ind_key = list(f.keys())[1]
-#
-#                 # Get the data
-#                 ecog = list(f[data_key])
-#                 ind = list(f[ind_key])
-#                 f.close()
-#             catalog = pd.read_csv(path + "/" + id + "/ECoG_Catalog.csv")
-#         except:
-#             print("Patient: " + str(id) + " has NO Data")
-#             continue
-#         try:
-#             annot_file = loadmat(path + "/" + id + "/annots.mat")
-#             annot_list = annot_file['annots']
-#             description_list = annot_file['descriptions']
-#             annot_tuple = tuple(map(tuple, annot_list))
-#             for i in range(len(annot_tuple)):
-#                 annot_dict[annot_tuple[i]] = description_list[i]
-#         except:
-#             # print("Patient: " + str(id) + " has NO Annotations")
-#             pass
-#
-#         ecog_arr = np.empty((len(ecog), len(ecog[0])))
-#         ind_arr = np.empty((len(ind), len(ind[0])))
-#         for i in range(len(ecog)):
-#             ecog_arr[i] = ecog[i]
-#         for i in range(len(ind)):
-#             ind_arr[i] = ind[i]
-#
-#         data_save = {'ecog': ecog_arr, 'ind': ind_arr}
-#         np.save('rns_raw_cache/RNS_raw_' + str(id) + '.npy', data_save)
-#
-#         data[id] = PatientInfo(ecog_arr.T, ind_arr.astype(int).T, catalog, annot_dict)
-#
-#         gc.collect()
-#
-#     return data
-
-def read_files(path='data', path_data=None, patientIDs=None, patient_type=['HUP', 'RNS'], annotation_only=False,
-               verbose=False):
+def read_files(path='data', patientIDs=None, patient_type=['HUP', 'RNS'], annotation_only=False, verbose=False):
     data = {}
 
     if patientIDs == None or patientIDs == []:
@@ -98,9 +48,14 @@ def read_files(path='data', path_data=None, patientIDs=None, patient_type=['HUP'
     for id in tqdm(patientIDs, disable=not verbose):
         annot_dict = {}
         try:
-            read_file_data = np.load(path_data + '/RNS_raw_' + str(id) + '.npy', allow_pickle=True)
-            ecog_arr = read_file_data.item().get('ecog')
-            ind_arr = read_file_data.item().get('ind')
+            with h5py.File(path + "/" + id + "/Device_Data.mat", "r") as f:
+                data_key = list(f.keys())[0]
+                ind_key = list(f.keys())[1]
+
+                # Get the data
+                ecog = list(f[data_key])
+                ind = list(f[ind_key])
+                f.close()
             catalog = pd.read_csv(path + "/" + id + "/ECoG_Catalog.csv")
         except:
             print("Patient: " + str(id) + " has NO Data")
@@ -116,11 +71,59 @@ def read_files(path='data', path_data=None, patientIDs=None, patient_type=['HUP'
             # print("Patient: " + str(id) + " has NO Annotations")
             pass
 
+        ecog_arr = np.empty((len(ecog), len(ecog[0])))
+        ind_arr = np.empty((len(ind), len(ind[0])))
+        for i in range(len(ecog)):
+            ecog_arr[i] = ecog[i]
+        for i in range(len(ind)):
+            ind_arr[i] = ind[i]
+
+        data_save = {'ecog': ecog_arr, 'ind': ind_arr}
+        # np.save('rns_raw_cache/RNS_raw_' + str(id) + '.npy', data_save)
+
         data[id] = PatientInfo(ecog_arr.T, ind_arr.astype(int).T, catalog, annot_dict)
 
         gc.collect()
 
     return data
+
+# def read_files(path='data', path_data=None, patientIDs=None, patient_type=['HUP', 'RNS'], annotation_only=False,
+#                verbose=False):
+#     data = {}
+#
+#     if patientIDs == None or patientIDs == []:
+#         dir_list = os.listdir(path)
+#         patientIDs = [s for s in dir_list for type_string in patient_type if type_string in s.upper()]
+#     if annotation_only == True:
+#         dir_list = os.listdir(path)
+#         patientIDs = [s for s in dir_list if exists(path + "/" + s + "/annots.mat")]
+#
+#     for id in tqdm(patientIDs, disable=not verbose):
+#         annot_dict = {}
+#         try:
+#             read_file_data = np.load(path_data + '/RNS_raw_' + str(id) + '.npy', allow_pickle=True)
+#             ecog_arr = read_file_data.item().get('ecog')
+#             ind_arr = read_file_data.item().get('ind')
+#             catalog = pd.read_csv(path + "/" + id + "/ECoG_Catalog.csv")
+#         except:
+#             print("Patient: " + str(id) + " has NO Data")
+#             continue
+#         try:
+#             annot_file = loadmat(path + "/" + id + "/annots.mat")
+#             annot_list = annot_file['annots']
+#             description_list = annot_file['descriptions']
+#             annot_tuple = tuple(map(tuple, annot_list))
+#             for i in range(len(annot_tuple)):
+#                 annot_dict[annot_tuple[i]] = description_list[i]
+#         except:
+#             # print("Patient: " + str(id) + " has NO Annotations")
+#             pass
+#
+#         data[id] = PatientInfo(ecog_arr.T, ind_arr.astype(int).T, catalog, annot_dict)
+#
+#         gc.collect()
+#
+#     return data
 
 
 def show_patientIDs(patient_type=['HUP', 'RNS'], path='data'):
