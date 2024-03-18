@@ -4,9 +4,9 @@
 # In[41]:
 
 
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-get_ipython().run_line_magic('matplotlib', 'widget')
+# get_ipython().run_line_magic('load_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('matplotlib', 'widget')
 
 
 # In[42]:
@@ -86,7 +86,7 @@ nQuery = 2
 # In[47]:
 
 
-args_task = {'n_epoch': 10,
+args_task = {'n_epoch': 80,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
@@ -247,7 +247,7 @@ for rd in range(1, NUM_ROUND + 1):
         selected_inds = pickle.load(f)
     selected_inds[rd] = q_idxs
     with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'selected_indices.pkl', 'wb') as f:
-    pickle.dump(selected_inds, f)
+        pickle.dump(selected_inds, f)
 # Now you can use the dictionary object as usual
     q_idxs_list.append(q_idxs)
     strategy.update(q_idxs)
