@@ -4,8 +4,11 @@ import torch
 import sklearn
 import pytorch_lightning as pl
 import sys
+from torch.nn.utils.rnn import pack_sequence, pad_packed_sequence, unpad_sequence
+
 sys.path.append('../tools')
 from sigmoid_loss import sigmoid_focal_loss
+
 
 class SupervisedDownstream(pl.LightningModule):
     def __init__(self, backbone, unfreeze_backbone_at_epoch=100):
@@ -19,22 +22,35 @@ class SupervisedDownstream(pl.LightningModule):
         self.softmax = nn.Softmax(dim=1)
         self.alpha = 0
         self.gamma = 5
+        self.lstm = nn.LSTM(512, 256, 1, batch_first=True, bidirectional=True)
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
 
-    def training_step(self, batch, batch_idx):
-        x, y = batch
+    def forward(self, x, seq_len):
         if self.current_epoch < self.unfreeze_backbone_at_epoch:
             self.backbone.eval()
             x = self.backbone(x)
             with torch.no_grad():
-                x = x.view(-1, 2048)
+                emb = x.view(-1, 2048)
         else:
             x = self.backbone(x)
-            x = x.view(-1, 2048)
-        x = F.relu(self.fc1(x))
+            emb = x.view(-1, 2048)
+
+        x = F.relu(self.fc1(emb))
+        x = torch.split(x, seq_len, dim=0)
+        x = pack_sequence(x, enforce_sorted=False)
+        x, (_, _) = self.lstm(x)
+        x, out_len = pad_packed_sequence(x, batch_first=True)
+        x = torch.concat(unpad_sequence(x, out_len, batch_first=True))
+
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)
+
+        return pred, emb
+
+    def training_step(self, batch, batch_idx):
+        x, y, seq_len = batch
+        pred, _ = self(x, seq_len)
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
@@ -43,44 +59,36 @@ class SupervisedDownstream(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        x = self.backbone(x)
-        x = x.view(-1, 2048)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        x, y, seq_len = batch
+        pred, _ = self(x, seq_len)
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
         out = torch.argmax(pred, dim=1)
-        # print(out.size)
+
         out = out.detach().cpu().numpy()
         target = y.squeeze().detach().cpu().numpy()
-        precision, recall, fscore, support = sklearn.metrics.precision_recall_fscore_support(out, target,labels = [0,1],zero_division=0)
+        precision, recall, fscore, support = sklearn.metrics.precision_recall_fscore_support(out, target, labels=[0, 1],
+                                                                                             zero_division=0)
         acc = sklearn.metrics.accuracy_score(out, target)
         # print(acc)
         # print(precision)
         # print(recall)
         # print(fscore)
-        # Logging to TensorBoard (if installed) by default
-        self.log("val_loss", loss,prog_bar=False)
-        self.log("val_acc", acc,prog_bar=False)
-        self.log("val_precision", precision[1],prog_bar=False)
-        self.log("val_recall", recall[1],prog_bar=False)
+
+        self.log("val_loss", loss, prog_bar=False)
+        self.log("val_acc", acc, prog_bar=False)
+        self.log("val_precision", precision[1], prog_bar=False)
+        self.log("val_recall", recall[1], prog_bar=False)
+        self.log("val_f1", fscore[1], prog_bar=False)
         return pred, label
 
     def predict_step(self, batch, batch_idx):
         # print(batch)
-        x, y = batch
-        emb = self.backbone(x)
-        emb = emb.view(-1, 2048)
-        x = F.relu(self.fc1(emb))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        x, y, seq_len = batch
+        pred, emb = self(x, seq_len)
         # Logging to TensorBoard (if installed) by default
-        return pred, y, emb
+        return pred, y, emb, seq_len
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)

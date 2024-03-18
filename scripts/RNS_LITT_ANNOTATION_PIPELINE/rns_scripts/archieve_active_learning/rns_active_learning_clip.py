@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[1]:
+
+
+# get_ipython().run_line_magic('load_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('matplotlib', 'widget')
+
 
 # In[2]:
 
@@ -8,7 +15,7 @@
 import numpy as np
 import random
 import sys
-sys.path.append('../tools')
+sys.path.append('../../tools')
 
 import os
 
@@ -56,9 +63,14 @@ pytorch_lightning.utilities.seed.seed_everything(seed=random_seed, workers=True)
 # In[4]:
 
 
-data_dir = "../../../user_data/"
+data_dir = "../../../../user_data/"
 log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
+
+
+# In[5]:
+
+
 strategy_name = 'LeastConfidence'
 
 
@@ -103,7 +115,7 @@ args_task = {'n_epoch': 100,
 data_list = ['HUP047.npy', 'HUP084.npy', 'HUP096.npy', 'HUP109.npy', 'HUP121.npy', 'HUP129.npy', 'HUP131.npy',
              'HUP137.npy', 'HUP147.npy', 'HUP156.npy', 'HUP159.npy', 'HUP182.npy', 'HUP197.npy', 'HUP199.npy',
              'RNS026.npy', 'RNS029.npy']
-X_train, y_train, X_test, y_test, index_train, index_test  = get_data_by_episode(data_list, split=0.8)
+X_train, y_train, X_test, y_test, index_train, index_test  = get_data(data_list, split=0.8)
 # data, label,_,_ = get_data(data_list, split=1)
 # train_data, test_data, train_label, test_label = sklearn.model_selection.train_test_split(data, label, test_size=0.8, random_state=42)
 
@@ -131,36 +143,42 @@ print(NUM_QUERY)
 print(NUM_ROUND)
 
 
-# In[11]:
+# In[17]:
 
 
-dataset = Data(X_train, y_train, X_test, y_test, RNS_Active, args_task)
+dataset = Data(X_train, y_train, X_test, y_test, RNS_Downstream, args_task)
 
 
-# In[12]:
+# In[18]:
+import torchvision
+from torch import nn
+ckpt = torch.load(ckpt_folder_root + "checkpoint31.pth")
+# resnet = torchvision.models.resnet50()
+# backbone = nn.Sequential(*list(resnet.children())[:-1])
+# swav = SwaV(backbone)
+# swav.load_state_dict(ckpt['model_state_dict'])
 
-
-swav = SwaV().load_from_checkpoint(
-    ckpt_folder_root + 'rns_swav_50_12/rns_swav-epoch=82-swav_loss=2.58204.ckpt')
+swav = SwaV()
+swav.load_state_dict(ckpt['model_state_dict'])
 model = SupervisedDownstream(swav.backbone)
 # initialize model and save the model state
 modelstate = deepcopy(model.state_dict())
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-net = Net(model, args_task, device, ckpt_folder_root = 'rns_active_episode', log_folder_root = 'rns_active_episode')
+net = Net(model, args_task, device, ckpt_folder_root = 'rns_active', log_folder_root = 'rns_active')
 
 
-# In[13]:
+# In[19]:
 
 
 modelstate
 
 
-# In[14]:
+# In[20]:
 
 
-strategy = get_strategy(strategy_name, dataset, net, None, args_task, rns_data = True)
+strategy = get_strategy(strategy_name, dataset, net, None, args_task)
 
 
 # In[ ]:
@@ -171,19 +189,19 @@ dataset.initialize_labels(NUM_INIT_LB)
 strategy.train()
 
 
-# In[ ]:
+# In[16]:
 
 
 for rd in range(1, NUM_ROUND +1):
     print('round ' + str(rd))
-    q_idxs = strategy.query(NUM_QUERY, index = index_train)
+    q_idxs = strategy.query(NUM_QUERY)
     strategy.update(q_idxs)
     strategy.net.round = rd
     strategy.net.net.load_state_dict(modelstate)
     strategy.train()
 
 
-# In[ ]:
+# In[16]:
 
 
 

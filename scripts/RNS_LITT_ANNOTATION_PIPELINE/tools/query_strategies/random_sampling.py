@@ -6,4 +6,10 @@ class RandomSampling(Strategy):
         super(RandomSampling, self).__init__(dataset, net, args_input, args_task)
 
     def query(self, n, index = None):
-        return np.random.choice(np.where(self.dataset.labeled_idxs==0)[0], n, replace=False)
+        unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
+        probs, seq_len = self.predict_prob(unlabeled_data)
+
+        to_select = self.dataset.episode_to_window_translation(np.random.choice(len(seq_len), n), seq_len)
+
+        # return np.random.choice(np.where(self.dataset.labeled_idxs==0)[0], n, replace=False)
+        return unlabeled_idxs[to_select]

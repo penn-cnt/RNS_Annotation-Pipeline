@@ -18,18 +18,30 @@ class LeastConfidenceRNS(Strategy):
         super(LeastConfidenceRNS, self).__init__(dataset, net, args_input, args_task)
 
     def query(self, n, index = None):
-        unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
-        probs = self.predict_prob(unlabeled_data)
+        unlabeled_idxs, unlabeled_data = self.dataset.get_train_data_unaugmented()
+        probs, seq_len = self.predict_prob(unlabeled_data)
         uncertainties = probs.max(1)[0]
-        index_train_stack = np.hstack(index[unlabeled_idxs])
-        assert uncertainties.size()[0] == index_train_stack.shape[0]
 
-        metric_array = torch.empty(len(unlabeled_idxs))
+        uncertainties, seq_len = self.dataset.get_slice_from_episode(uncertainties, seq_len, ~unlabeled_idxs)
+        uncertainties = np.concatenate(uncertainties)
 
-        for i, ind in enumerate(unlabeled_idxs):
-            required_slice_ind = np.unique(index[ind]['episode_index'])[0]
-            index_location = np.where(index_train_stack['episode_index'] == required_slice_ind)[0]
-            metric_array[i] = torch.mean(uncertainties[index_location])
+        # to_select = np.ones(1)
+        threshold = 0.97
+        # while np.sum(to_select)<n:
+        #     metrics = self.dataset.combine_window_to_episode(threshold-uncertainties, seq_len)
+        #     to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
+        #     threshold+=0.01
 
-        return unlabeled_idxs[torch.sort(metric_array)[1][:n]]
+        metrics = self.dataset.combine_window_to_episode(threshold - uncertainties, seq_len)
+        to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
+
+        unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
+        print('selected', np.sum(to_select), threshold)
+
+
+        assert len(to_select) == len(unlabeled_idxs)
+
+
+
+        return unlabeled_idxs[to_select.astype(bool)]
 

@@ -14,14 +14,6 @@ import pytorch_lightning.loggers as pl_loggers
 import pytorch_lightning.callbacks as pl_callbacks
 
 
-def collate_fn(batch):
-    info = list(zip(*batch))
-    data = info[0]
-    label = info[1]
-
-    return torch.stack(data), torch.stack(label)
-
-
 class Net:
     def __init__(self, net, params, device, log_folder_root='kaggle_dog_active',
                  ckpt_folder_root='kaggle_dog_active'):
@@ -41,7 +33,7 @@ class Net:
                                                            dirpath=self.ckpt_folder_root + 'active_checkpoints_'
                                                                    + self.params['strategy_name'],
                                                            save_top_k=-1,
-                                                           every_n_epochs=10,
+                                                           every_n_epochs=5,
                                                            save_on_train_epoch_end=True)
 
         csv_logger = pl_loggers.CSVLogger(self.log_folder_root + "active_logs_" + self.params['strategy_name'],
@@ -78,7 +70,7 @@ class Net:
     def predict(self, data):
         predictions = self.run_prediction(data)
         output_list = []
-        for pred, y, emb in predictions:
+        for pred, y, emb, seq_len in predictions:
             output_list.append(pred)
 
         pred_raw = torch.vstack(output_list).float()
@@ -89,13 +81,16 @@ class Net:
 
         predictions = self.run_prediction(data)
         output_list = []
+        seq_len_list = []
         m = nn.Softmax(dim=1)
-        for pred, y, emb in predictions:
+        for pred, y, emb, seq_len in predictions:
             output_list.append(pred)
+            seq_len_list.append(seq_len)
 
         pred_raw = torch.vstack(output_list).float()
+        seq_len_out = torch.tensor([item for sublist in seq_len_list for item in sublist])
         probs = m(pred_raw)
-        return probs
+        return probs,seq_len_out
 
     def predict_prob_dropout(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
@@ -108,7 +103,7 @@ class Net:
         output_list_list = []
         for predictions in prediction_list:
             output_list = []
-            for pred, y, emb in predictions:
+            for pred, y, emb, seq_len in predictions:
                 output_list.append(pred)
             pred_raw = torch.vstack(output_list).float()
             probs = m(pred_raw)
@@ -116,6 +111,7 @@ class Net:
 
         prob_dp = torch.mean(torch.stack(output_list_list), dim=0)
         self.net.enable_mc_dropout = False
+
 
         return prob_dp
 

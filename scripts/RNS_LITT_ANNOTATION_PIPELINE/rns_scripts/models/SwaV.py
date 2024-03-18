@@ -22,10 +22,6 @@ class SwaV(pl.LightningModule):
         self.queues = nn.ModuleList([MemoryBankModule(size=512) for _ in range(2)])
         self.criterion = SwaVLoss(sinkhorn_epsilon = 0.05)
 
-        data_dir = "../../../user_data/"
-        self.dir_list = os.listdir(data_dir+'rns_cache')
-        # self.patientIDs = [s for s in dir_list for type_string in ['HUP', 'RNS'] if type_string in s.upper()]
-
     def train_dataloader(self):
         for _ in range(100):
             file_list = random.sample(self.dir_list,3)

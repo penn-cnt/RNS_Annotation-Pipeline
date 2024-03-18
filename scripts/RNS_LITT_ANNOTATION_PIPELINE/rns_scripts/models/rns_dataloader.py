@@ -288,11 +288,262 @@ class RNS_Active(Dataset):
 
         return data, torch.from_numpy(label).to(dtype=torch.long), None
 
+class RNS_Active(Dataset):
+    def __init__(self, data, label, transform=True, astensor=True):
+        self.data = data
+        self.label = label
+        self.transform = transform
+
+        # self.data = np.vstack(self.data)
+
+
+        self.label = np.hstack(self.label)
+        self.label = self.label[np.newaxis].T
+        print(self.label.shape)
+        print(self.data.shape)
+        self.length = len(self.data)
+
+
+        if astensor:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+                T.ToTensor()
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.ToTensor()
+            ])
+        else:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+            ])
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        data = self.data[index]
+        label = self.label[index]
+
+        if self.transform:
+            concat_len = data.shape[1] / 4
+            channel_index = np.arange(4)
+            np.random.shuffle(channel_index)
+            channel_index = channel_index * concat_len + (concat_len - 1) / 2
+            channel_index = np.repeat(channel_index, concat_len)
+            concate_len_1 = (concat_len - 1) / 2
+            a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+            base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+            channel_index = channel_index + base_repeat
+            data = data[channel_index.astype(int)]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.augmentation(data)
+
+        else:
+            concat_len = data.shape[1] / 4
+            channel_index = np.arange(4)
+            # np.random.shuffle(channel_index)
+            channel_index = channel_index * concat_len + (concat_len - 1) / 2
+            channel_index = np.repeat(channel_index, concat_len)
+            concate_len_1 = (concat_len - 1) / 2
+            a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+            base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+            channel_index = channel_index + base_repeat
+            data = data[channel_index.astype(int)]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.totensor(data)
+
+        return data, torch.from_numpy(label).to(dtype=torch.long), None
+
+class RNS_Active_by_episode(Dataset):
+    def __init__(self, data, label, transform=True, astensor=True):
+        self.data = data
+        self.label = label
+        self.transform = transform
+
+        # self.data = np.vstack(self.data)
+
+        # self.label = np.hstack(self.label)
+        # self.label = self.label[np.newaxis].T
+        # print(self.label.shape)
+        # print(self.data.shape)
+        self.length = len(self.data)
+
+        if astensor:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+                T.ToTensor()
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.ToTensor()
+            ])
+        else:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+            ])
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        data = self.data[index]
+        label = self.label[index]
+
+        if self.transform:
+            concat_len = data.shape[1] / 4
+            channel_index = np.arange(4)
+            np.random.shuffle(channel_index)
+            channel_index = channel_index * concat_len + (concat_len - 1) / 2
+            channel_index = np.repeat(channel_index, concat_len)
+            concate_len_1 = (concat_len - 1) / 2
+            a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+            base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+            channel_index = channel_index + base_repeat
+            data = data[channel_index.astype(int)]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.augmentation(data)
+
+        else:
+            concat_len = data.shape[1] / 4
+            channel_index = np.arange(4)
+            # np.random.shuffle(channel_index)
+            channel_index = channel_index * concat_len + (concat_len - 1) / 2
+            channel_index = np.repeat(channel_index, concat_len)
+            concate_len_1 = (concat_len - 1) / 2
+            a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+            base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+            channel_index = channel_index + base_repeat
+            data = data[channel_index.astype(int)]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            data = self.totensor(data)
+
+        return data, torch.from_numpy(label).to(dtype=torch.long), None
+class RNS_Active_by_episode_LSTM(Dataset):
+    def __init__(self, data, label, transform=True, astensor=True):
+        self.data = data
+        self.label = label
+        self.transform = transform
+
+        self.length = len(self.data)
+
+        if astensor:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+                T.ToTensor()
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.ToTensor()
+            ])
+        else:
+            self.augmentation = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+                T.RandomApply([T.ColorJitter()], p=0.5),
+                T.RandomApply([T.GaussianBlur(kernel_size=(3, 3))], p=0.5),
+                T.RandomInvert(p=0.2),
+                T.RandomPosterize(4, p=0.2),
+            ])
+
+            self.totensor = T.Compose([
+                T.ToPILImage(),
+                T.Resize((256, 256), interpolation=T.InterpolationMode.NEAREST),
+            ])
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        data_arr = self.data[index]
+        label_arr = self.label[index]
+
+        data_arr_out = []
+
+        concat_len = data_arr[0].shape[1] / 4
+        channel_index = np.arange(4)
+        if self.transform:
+            np.random.shuffle(channel_index)
+        channel_index = channel_index * concat_len + (concat_len - 1) / 2
+        channel_index = np.repeat(channel_index, concat_len)
+        concate_len_1 = (concat_len - 1) / 2
+        a_repeat = np.arange(-concate_len_1, concate_len_1 + 1)[np.newaxis].T
+        base_repeat = np.repeat(a_repeat, 4, axis=1).T.flatten()
+        channel_index = channel_index + base_repeat
+
+        for i, data in enumerate(data_arr):
+
+            data = data[channel_index.astype(int)]
+            data = torch.from_numpy(data).clone()
+            data = data.repeat(3, 1, 1)
+            if self.transform:
+                data = self.augmentation(data)
+            else:
+                data = self.totensor(data)
+            data_arr_out.append(data)
+
+        data_arr_out = torch.stack(data_arr_out)
+
+        return data_arr_out, torch.from_numpy(label_arr).to(dtype=torch.long), None
+
+# def collate_fn(batch):
+#     info = list(zip(*batch))
+#     data = info[0]
+#     label = info[1]
+#     return torch.stack(data), torch.stack(label)
+
 def collate_fn(batch):
     info = list(zip(*batch))
     data = info[0]
     label = info[1]
-    return torch.stack(data), torch.stack(label)
+    sequence_len = [dt.size(0) for dt in data]
+
+    return torch.concat(data), torch.concat(label), sequence_len
 
 
 def get_data(file_names, split=0.7):
@@ -343,7 +594,7 @@ def get_data(file_names, split=0.7):
     return train_data, train_label, test_data, test_label, train_index, test_index
 
 
-def get_data_by_episode(file_names, split=0.7):
+def get_data_by_episode(file_names, split=0.7, patient_out = True):
 
     train_data = []
     train_label = []
@@ -352,47 +603,77 @@ def get_data_by_episode(file_names, split=0.7):
     test_label = []
     test_index = []
 
+    if patient_out:
+        split_n = int(len(file_names) * (split))
 
-    for name in tqdm(file_names):
-        cache = np.load(data_dir + 'rns_test_cache/' + name, allow_pickle=True)
-        data = cache.item().get('data')
-        label = cache.item().get('label')
-        index = cache.item().get('indices')
-        patientID = cache.item().get('patientID')
+        for n, name in tqdm(enumerate(file_names)):
+            cache = np.load(data_dir + 'rns_test_cache/' + name, allow_pickle=True)
+            data = cache.item().get('data')
+            label = cache.item().get('label')
+            index = cache.item().get('indices')
+            patientID = cache.item().get('patientID')
 
-        # print(name)
-        # print(data.shape)
-        # print(label.shape)
-        # print(index.shape)
-        # print(patientID.shape)
-        # print('=====================')
+            index = np.hstack((patientID[:, np.newaxis], index.astype(int)))
+            index = rfn.unstructured_to_structured(index,
+                                                   np.dtype([('patient_index', '|S10'), ('episode_index', 'int32'),
+                                                             ('slice_index', 'int32'), ('start_index', 'int32')]))
 
-        index = np.hstack((patientID[:, np.newaxis], index.astype(int)))
-        index = rfn.unstructured_to_structured(index,
-                                                     np.dtype([('patient_index', '|S10'), ('episode_index', 'int32'),
-                                                               ('slice_index', 'int32'), ('start_index', 'int32')]))
+            data_list = []
+            label_list = []
+            index_list = []
+            for i in range(len(list(np.unique(index['episode_index'])))):
+                index_location = np.where(index['episode_index'] == list(np.unique(index['episode_index']))[i])[0]
 
-        data_list = []
-        label_list = []
-        index_list = []
-        for i in range(len(list(np.unique(index['episode_index'])))):
+                sorted_index = [index_location[np.argsort(index[index_location], order=['start_index', 'slice_index'])]]
+                data_list.append(data[sorted_index].squeeze(0))
+                label_list.append(label[sorted_index].squeeze(0))
+                index_list.append(index[sorted_index].squeeze(0))
 
-            index_location = np.where(index['episode_index'] == list(np.unique(index['episode_index']))[i])[0]
+            if n< split_n:
+                train_data.extend(data_list)
+                train_label.extend(label_list)
+                train_index.extend(index_list)
+            else:
+                test_data.extend(data_list)
+                test_label.extend(label_list)
+                test_index.extend(index_list)
 
-            sorted_index = [index_location[np.argsort(index[index_location], order=['start_index','slice_index'])]]
-            data_list.append(data[sorted_index].squeeze(0))
-            label_list.append(label[sorted_index].squeeze(0))
-            index_list.append(index[sorted_index].squeeze(0))
 
-        split_n = int(len(data_list) * (split))
+    else:
+        for name in tqdm(file_names):
+            cache = np.load(data_dir + 'rns_test_cache/' + name, allow_pickle=True)
+            data = cache.item().get('data')
+            label = cache.item().get('label')
+            index = cache.item().get('indices')
+            patientID = cache.item().get('patientID')
 
-        train_data.extend(data_list[:split_n])
-        train_label.extend(label_list[:split_n])
-        train_index.extend(index_list[:split_n])
 
-        test_data.extend(data_list[split_n:])
-        test_label.extend(label_list[split_n:])
-        test_index.extend(index_list[split_n:])
+            index = np.hstack((patientID[:, np.newaxis], index.astype(int)))
+            index = rfn.unstructured_to_structured(index,
+                                                         np.dtype([('patient_index', '|S10'), ('episode_index', 'int32'),
+                                                                   ('slice_index', 'int32'), ('start_index', 'int32')]))
+
+            data_list = []
+            label_list = []
+            index_list = []
+            for i in range(len(list(np.unique(index['episode_index'])))):
+
+                index_location = np.where(index['episode_index'] == list(np.unique(index['episode_index']))[i])[0]
+
+                sorted_index = [index_location[np.argsort(index[index_location], order=['start_index','slice_index'])]]
+                data_list.append(data[sorted_index].squeeze(0))
+                label_list.append(label[sorted_index].squeeze(0))
+                index_list.append(index[sorted_index].squeeze(0))
+
+            split_n = int(len(data_list) * (split))
+
+            train_data.extend(data_list[:split_n])
+            train_label.extend(label_list[:split_n])
+            train_index.extend(index_list[:split_n])
+
+            test_data.extend(data_list[split_n:])
+            test_label.extend(label_list[split_n:])
+            test_index.extend(index_list[split_n:])
 
 
     train_data = np.array(train_data, dtype=object)
