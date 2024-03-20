@@ -24,6 +24,7 @@ class SupervisedDownstream(pl.LightningModule):
         self.gamma = 5
         self.lstm = nn.LSTM(512, 256, 1, batch_first=True, bidirectional=True)
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
+        self.enable_mc_dropout = False
 
     def forward(self, x, seq_len):
         if self.current_epoch < self.unfreeze_backbone_at_epoch:
@@ -35,13 +36,20 @@ class SupervisedDownstream(pl.LightningModule):
             x = self.backbone(x)
             emb = x.view(-1, 2048)
 
+        if self.enable_mc_dropout:
+            self.dp.train()
+        else:
+            self.dp.eval()
+
         x = F.relu(self.fc1(emb))
+
+        x = self.dp(x)
         x = torch.split(x, seq_len, dim=0)
         x = pack_sequence(x, enforce_sorted=False)
         x, (_, _) = self.lstm(x)
         x, out_len = pad_packed_sequence(x, batch_first=True)
         x = torch.concat(unpad_sequence(x, out_len, batch_first=True))
-
+        x = self.dp(x)
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)

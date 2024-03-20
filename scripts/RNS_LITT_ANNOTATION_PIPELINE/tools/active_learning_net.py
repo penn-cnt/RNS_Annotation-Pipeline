@@ -46,7 +46,7 @@ class Net:
                              devices=1,
                              log_every_n_steps=20,
                              precision=16,
-                             check_val_every_n_epoch=5,
+                             check_val_every_n_epoch=10,
                              enable_model_summary=False,
                              )
 
@@ -103,17 +103,20 @@ class Net:
         output_list_list = []
         for predictions in prediction_list:
             output_list = []
+            seq_len_list = []
             for pred, y, emb, seq_len in predictions:
                 output_list.append(pred)
+                seq_len_list.append(seq_len)
             pred_raw = torch.vstack(output_list).float()
             probs = m(pred_raw)
             output_list_list.append(probs)
 
         prob_dp = torch.mean(torch.stack(output_list_list), dim=0)
+        seq_len_out = torch.tensor([item for sublist in seq_len_list for item in sublist])
+
         self.net.enable_mc_dropout = False
 
-
-        return prob_dp
+        return prob_dp,seq_len_out
 
     def predict_prob_dropout_split(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
@@ -140,13 +143,19 @@ class Net:
     def get_model(self):
         return self.net
 
-    def get_embeddings(self, data):
+    def get_embeddings(self, data, return_target = False):
         predictions = self.run_prediction(data)
         emb_list = []
-        for pred, y, emb in predictions:
+        target_list = []
+        for pred, y, emb, seq_len in predictions:
             emb_list.append(emb)
+            target_list.append(y)
         emb = torch.vstack(emb_list).float()
-        return emb
+        target = torch.concat(target_list)
+        if return_target:
+            return emb, target
+        else:
+            return emb
 
     def get_grad_embeddings(self, data):
         predictions = self.run_prediction(data)

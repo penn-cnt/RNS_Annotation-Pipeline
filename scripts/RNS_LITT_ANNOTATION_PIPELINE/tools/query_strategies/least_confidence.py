@@ -25,12 +25,7 @@ class LeastConfidenceRNS(Strategy):
         uncertainties, seq_len = self.dataset.get_slice_from_episode(uncertainties, seq_len, ~unlabeled_idxs)
         uncertainties = np.concatenate(uncertainties)
 
-        # to_select = np.ones(1)
         threshold = 0.97
-        # while np.sum(to_select)<n:
-        #     metrics = self.dataset.combine_window_to_episode(threshold-uncertainties, seq_len)
-        #     to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
-        #     threshold+=0.01
 
         metrics = self.dataset.combine_window_to_episode(threshold - uncertainties, seq_len)
         to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)

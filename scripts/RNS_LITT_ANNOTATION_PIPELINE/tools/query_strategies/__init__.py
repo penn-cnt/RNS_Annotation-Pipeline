@@ -2,7 +2,7 @@ from .random_sampling import RandomSampling
 from .least_confidence import LeastConfidence, LeastConfidenceRNS
 from .margin_sampling import MarginSampling
 from .entropy_sampling import EntropySampling, EntropySamplingRNS
-from .least_confidence_dropout import LeastConfidenceDropout
+from .least_confidence_dropout import LeastConfidenceDropout,LeastConfidenceDropoutRNS
 from .margin_sampling_dropout import MarginSamplingDropout
 from .entropy_sampling_dropout import EntropySamplingDropout
 from .kmeans_sampling import KMeansSampling
