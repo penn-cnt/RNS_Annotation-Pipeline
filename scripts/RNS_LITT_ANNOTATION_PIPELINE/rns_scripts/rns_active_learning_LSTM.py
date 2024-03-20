@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[41]:
+# In[1]:
 
-
+#
 # get_ipython().run_line_magic('load_ext', 'autoreload')
 # get_ipython().run_line_magic('autoreload', '2')
 # get_ipython().run_line_magic('matplotlib', 'widget')
 
 
-# In[42]:
+# In[2]:
 
 
 import numpy as np
@@ -40,7 +40,7 @@ import pickle
 warnings.filterwarnings("ignore")
 
 
-# In[43]:
+# In[3]:
 
 
 random_seed = 42
@@ -61,7 +61,7 @@ import pytorch_lightning
 pytorch_lightning.utilities.seed.seed_everything(seed=random_seed, workers=True)
 
 
-# In[44]:
+# In[4]:
 
 
 data_dir = "../../../user_data/"
@@ -69,13 +69,13 @@ log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
 
 
-# In[45]:
+# In[5]:
 
 
-strategy_name = 'LeastConfidence'
+strategy_name = 'LeastConfidenceDropout'
 
 
-# In[46]:
+# In[6]:
 
 
 nStart = 1
@@ -83,10 +83,10 @@ nEnd = 20
 nQuery = 2
 
 
-# In[47]:
+# In[7]:
 
 
-args_task = {'n_epoch': 80,
+args_task = {'n_epoch': 50,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
@@ -97,7 +97,7 @@ args_task = {'n_epoch': 80,
              }
 
 
-# In[48]:
+# In[8]:
 
 
 # raw_annotations = pd.read_csv(data_dir + 'full_updated_anns_annotTbl_cleaned.csv')
@@ -108,7 +108,7 @@ args_task = {'n_epoch': 80,
 #                                       verbose=True)  # Import data with annotation
 
 
-# In[49]:
+# In[9]:
 
 
 # data_list = os.listdir(data_dir+'rns_test_cache')
@@ -130,7 +130,7 @@ print(test_data.shape)
 print(test_label.shape)
 
 
-# In[50]:
+# In[10]:
 
 
 X_train = np.concatenate(train_data)
@@ -143,7 +143,7 @@ seq_len_train = np.array([y.shape[0] for y in train_label])
 seq_len_test = np.array([y.shape[0] for y in test_label])
 
 
-# In[51]:
+# In[11]:
 
 
 n_pool = len(train_data)
@@ -161,19 +161,19 @@ print(NUM_QUERY)
 print(NUM_ROUND)
 
 
-# In[51]:
+# In[11]:
 
 
 
 
 
-# In[52]:
+# In[12]:
 
 
 dataset = Data(X_train, y_train, X_test, y_test, seq_len_train, seq_len_test, RNS_Active_by_episode_LSTM, args_task)
 
 
-# In[53]:
+# In[13]:
 
 
 swav = SwaV().load_from_checkpoint(
@@ -186,20 +186,20 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 net = Net(model, args_task, device, ckpt_folder_root='rns_active', log_folder_root='rns_active')
 
 
-# In[54]:
+# In[14]:
 
 
 strategy = get_strategy(strategy_name, dataset, net, None, args_task, rns_data=True)
 
 
-# In[55]:
+# In[15]:
 
 
 # initial round of training, round 0
 dataset.initialize_labels(NUM_INIT_LB)
 
 
-# In[60]:
+# In[16]:
 
 
 ids,_ = dataset.get_labeled_data()
@@ -215,7 +215,7 @@ with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'sele
     pickle.dump(selected_inds, f)
 
 
-# In[ ]:
+# In[17]:
 
 
 strategy.train()
@@ -224,7 +224,6 @@ strategy.train()
 # In[ ]:
 
 
-q_idxs_list = []
 for rd in range(1, NUM_ROUND + 1):
     print('round ' + str(rd))
     log_file_name = log_folder_root + 'rns_active/active_logs_' + strategy_name + '/logger_round_' + str(
@@ -237,7 +236,7 @@ for rd in range(1, NUM_ROUND + 1):
     load_file_name = strategy_name + '_round_' + str(rd - 1) + '-epoch=' + str(int(max_row['epoch'])).zfill(2)
 
     ind = next((i for i, s in enumerate(ckpt_files) if load_file_name in s), None)
-    print(ind)
+    print(ind, ckpt_files[ind])
     strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind], backbone=swav.backbone)
 
     q_idxs = strategy.query(NUM_QUERY * 90)
@@ -249,9 +248,14 @@ for rd in range(1, NUM_ROUND + 1):
     with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'selected_indices.pkl', 'wb') as f:
         pickle.dump(selected_inds, f)
 # Now you can use the dictionary object as usual
-    q_idxs_list.append(q_idxs)
     strategy.update(q_idxs)
     strategy.net.round = rd
     strategy.net.net.load_state_dict(modelstate)
     strategy.train()
+
+
+# In[ ]:
+
+
+
 
