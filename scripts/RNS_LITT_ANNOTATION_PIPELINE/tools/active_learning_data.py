@@ -64,7 +64,7 @@ class Data:
     def get_train_data_unaugmented(self):
         return self.labeled_idxs.copy(), self.handler(
             self.combine_window_to_episode(self.X_train, self.seq_len_train),
-            self.combine_window_to_episode(self.X_train, self.seq_len_train), self.args_task['transform'])
+            self.combine_window_to_episode(self.Y_train, self.seq_len_train), self.args_task['transform'])
 
     def get_test_data(self):
         return self.handler(self.combine_window_to_episode(self.X_test, self.seq_len_test),
@@ -131,6 +131,7 @@ class Data:
     def combine_window_to_episode(self, data, seq_len, index=None):
         cum_sum_index = np.cumsum(seq_len)
         cum_sum_index = np.insert(cum_sum_index, 0, 0)
+
         assert len(data) == cum_sum_index[-1]
 
         data_out = [None] * (len(cum_sum_index) - 1)
