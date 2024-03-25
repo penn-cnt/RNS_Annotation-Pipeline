@@ -24,12 +24,19 @@ class EntropySamplingDropoutRNS(Strategy):
         probs, seq_len = self.predict_prob_dropout(unlabeled_data, n_drop=10)
         log_probs = torch.log(probs)
         uncertainties = (probs * log_probs).sum(1)
-        uncertainties, seq_len = self.dataset.get_slice_from_episode(uncertainties, seq_len, ~unlabeled_idxs)
-        uncertainties = np.concatenate(uncertainties)
 
-        threshold = 0.97
+        indices = np.argsort(uncertainties)
+        original_order = indices.argsort()
+        cdf = np.arange(1, len(uncertainties) + 1) / len(uncertainties)
+        linear_data = np.interp(cdf, (cdf.min(), cdf.max()), (0, 1))
 
-        metrics = self.dataset.combine_window_to_episode(threshold - uncertainties, seq_len)
+        uncertainties_metric = 0.2 - linear_data[original_order]
+
+        uncertainties_metric, seq_len = self.dataset.get_slice_from_episode(uncertainties_metric, seq_len,
+                                                                            ~unlabeled_idxs)
+        uncertainties_metric = np.concatenate(uncertainties_metric)
+
+        metrics = self.dataset.combine_window_to_episode(uncertainties_metric, seq_len)
         to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
 
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
