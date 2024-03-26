@@ -21,7 +21,7 @@ class EntropySamplingDropoutRNS(Strategy):
 
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_train_data_unaugmented()
-        probs, seq_len = self.predict_prob_dropout(unlabeled_data, n_drop=2)
+        probs, seq_len = self.predict_prob_dropout(unlabeled_data, n_drop=self.n_drop)
         log_probs = torch.log(probs)
         uncertainties = (probs * log_probs).sum(1)
 
@@ -40,7 +40,7 @@ class EntropySamplingDropoutRNS(Strategy):
         to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
 
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
-        print('selected', np.sum(to_select), threshold)
+        print('selected', np.sum(to_select))
 
         assert len(to_select) == len(unlabeled_idxs)
 
