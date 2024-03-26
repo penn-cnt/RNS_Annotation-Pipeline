@@ -3,7 +3,7 @@ from query_strategies import RandomSampling, LeastConfidence, MarginSampling, En
 								KMeansSampling, KMeansSamplingGPU, KCenterGreedy, KCenterGreedyPCA, BALDDropout,  \
 								AdversarialBIM, AdversarialDeepFool, VarRatio, MeanSTD, BadgeSampling, CEALSampling, \
 								LossPredictionLoss, VAAL, WAAL,\
-								LeastConfidenceRNS,LeastConfidenceDropoutRNS, EntropySamplingRNS
+								LeastConfidenceRNS,LeastConfidenceDropoutRNS, EntropySamplingRNS, EntropySamplingDropoutRNS
 
 def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data = False):
 	if rns_data == False:
@@ -67,7 +67,7 @@ def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data = 
 		elif STRATEGY_NAME == 'MarginSamplingDropout':
 			return MarginSamplingDropout(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'EntropySamplingDropout':
-			return EntropySamplingDropout(dataset, net, args_input, args_task)
+			return EntropySamplingDropoutRNS(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'KMeansSampling':
 			return KMeansSampling(dataset, net, args_input, args_task)
 		elif STRATEGY_NAME == 'KMeansSamplingGPU':
