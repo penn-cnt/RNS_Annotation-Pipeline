@@ -86,7 +86,7 @@ nQuery = 2
 # In[7]:
 
 
-args_task = {'n_epoch': 50,
+args_task = {'n_epoch': 40,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
