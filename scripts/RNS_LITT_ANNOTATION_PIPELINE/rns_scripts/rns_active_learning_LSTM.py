@@ -224,6 +224,7 @@ strategy.train()
 # In[ ]:
 
 
+
 for rd in range(1, NUM_ROUND + 1):
     print('round ' + str(rd))
     log_file_name = log_folder_root + 'rns_active/active_logs_' + strategy_name + '/logger_round_' + str(
@@ -233,7 +234,8 @@ for rd in range(1, NUM_ROUND + 1):
     max_row = logs.iloc[max_ind]
     ckpt_directory = ckpt_folder_root + 'rns_active/active_checkpoints_' + strategy_name
     ckpt_files = os.listdir(ckpt_directory)
-    load_file_name = strategy_name + '_round_' + str(rd - 1) + '-epoch=' + str(int(max_row['epoch'])).zfill(2)
+    load_file_name = strategy_name + '_round_' + str(rd - 1) + '-step=' + str(int(max_row['step']+1))
+    print(load_file_name)
 
     ind = next((i for i, s in enumerate(ckpt_files) if load_file_name in s), None)
     print(ind, ckpt_files[ind])
