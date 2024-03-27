@@ -29,7 +29,7 @@ class EntropySamplingRNS(Strategy):
         cdf = np.arange(1, len(uncertainties) + 1) / len(uncertainties)
         linear_data = np.interp(cdf, (cdf.min(), cdf.max()), (0, 1))
 
-        uncertainties_metric = 0.07-linear_data[original_order]
+        uncertainties_metric = 0.2-linear_data[original_order]
 
         uncertainties_metric, seq_len = self.dataset.get_slice_from_episode(uncertainties_metric, seq_len, ~unlabeled_idxs)
         uncertainties_metric = np.concatenate(uncertainties_metric)

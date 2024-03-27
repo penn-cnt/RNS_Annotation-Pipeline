@@ -72,7 +72,7 @@ ckpt_folder_root = '../../../user_data/checkpoints/'
 # In[5]:
 
 
-strategy_name = 'LeastConfidenceDropout'
+strategy_name = 'EntropySampling'
 
 
 # In[6]:

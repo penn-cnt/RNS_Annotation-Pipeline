@@ -46,7 +46,8 @@ class Net:
                              devices=1,
                              log_every_n_steps=20,
                              precision=16,
-                             check_val_every_n_epoch=10,
+                             check_val_every_n_epoch=None,
+                             val_check_interval = 175,
                              enable_model_summary=False,
                              )
 

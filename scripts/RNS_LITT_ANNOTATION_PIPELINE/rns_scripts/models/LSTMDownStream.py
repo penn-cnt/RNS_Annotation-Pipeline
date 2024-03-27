@@ -49,7 +49,9 @@ class SupervisedDownstream(pl.LightningModule):
         x, (_, _) = self.lstm(x)
         x, out_len = pad_packed_sequence(x, batch_first=True)
         x = torch.concat(unpad_sequence(x, out_len, batch_first=True))
+
         x = self.dp(x)
+
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)
