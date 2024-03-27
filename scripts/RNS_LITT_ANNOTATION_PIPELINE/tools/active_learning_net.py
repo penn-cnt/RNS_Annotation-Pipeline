@@ -26,6 +26,8 @@ class Net:
         self.ckpt_folder_root = '../../../user_data/checkpoints/' + ckpt_folder_root + '/'
 
     def train(self, data, test_data=None):
+        ckpt_save_n_step = 50
+
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=
                                                            self.params['strategy_name'] + '_round_' + str(self.round)
@@ -33,7 +35,7 @@ class Net:
                                                            dirpath=self.ckpt_folder_root + 'active_checkpoints_'
                                                                    + self.params['strategy_name'],
                                                            save_top_k=-1,
-                                                           every_n_epochs=5,
+                                                           every_n_train_steps=ckpt_save_n_step,
                                                            save_on_train_epoch_end=False)
 
         csv_logger = pl_loggers.CSVLogger(self.log_folder_root + "active_logs_" + self.params['strategy_name'],
@@ -44,10 +46,10 @@ class Net:
                              callbacks=[checkpoint_callback],
                              accelerator='gpu',
                              devices=1,
-                             log_every_n_steps=20,
+                             log_every_n_steps=50,
                              precision=16,
                              check_val_every_n_epoch=None,
-                             val_check_interval = 175,
+                             val_check_interval=ckpt_save_n_step,
                              enable_model_summary=False,
                              )
 
