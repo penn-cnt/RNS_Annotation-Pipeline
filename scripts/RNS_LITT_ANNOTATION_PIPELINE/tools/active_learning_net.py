@@ -29,12 +29,12 @@ class Net:
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=
                                                            self.params['strategy_name'] + '_round_' + str(self.round)
-                                                           + '-{epoch:02d}-{train_loss:.5f}',
+                                                           + '-{step}-{train_loss:.5f}',
                                                            dirpath=self.ckpt_folder_root + 'active_checkpoints_'
                                                                    + self.params['strategy_name'],
                                                            save_top_k=-1,
                                                            every_n_epochs=5,
-                                                           save_on_train_epoch_end=True)
+                                                           save_on_train_epoch_end=False)
 
         csv_logger = pl_loggers.CSVLogger(self.log_folder_root + "active_logs_" + self.params['strategy_name'],
                                           name='logger_round_' + str(self.round))
@@ -46,7 +46,8 @@ class Net:
                              devices=1,
                              log_every_n_steps=20,
                              precision=16,
-                             check_val_every_n_epoch=10,
+                             check_val_every_n_epoch=None,
+                             val_check_interval=175,
                              enable_model_summary=False,
                              )
 
@@ -90,7 +91,7 @@ class Net:
         pred_raw = torch.vstack(output_list).float()
         seq_len_out = torch.tensor([item for sublist in seq_len_list for item in sublist])
         probs = m(pred_raw)
-        return probs,seq_len_out
+        return probs, seq_len_out
 
     def predict_prob_dropout(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
@@ -116,7 +117,7 @@ class Net:
 
         self.net.enable_mc_dropout = False
 
-        return prob_dp,seq_len_out
+        return prob_dp, seq_len_out
 
     def predict_prob_dropout_split(self, data, n_drop=10):
         self.net.enable_mc_dropout = True
@@ -143,7 +144,7 @@ class Net:
     def get_model(self):
         return self.net
 
-    def get_embeddings(self, data, return_target = False):
+    def get_embeddings(self, data, return_target=False):
         predictions = self.run_prediction(data)
         emb_list = []
         target_list = []
