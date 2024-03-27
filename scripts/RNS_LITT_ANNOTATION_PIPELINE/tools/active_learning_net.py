@@ -26,7 +26,7 @@ class Net:
         self.ckpt_folder_root = '../../../user_data/checkpoints/' + ckpt_folder_root + '/'
 
     def train(self, data, test_data=None):
-        ckpt_save_n_step = 50
+        ckpt_save_n_step = 75
 
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=
@@ -38,12 +38,17 @@ class Net:
                                                            every_n_train_steps=ckpt_save_n_step,
                                                            save_on_train_epoch_end=False)
 
+        early_stop_callback = pl_callbacks.EarlyStopping(monitor="val_acc",
+                                                         patience=10,
+                                                         verbose=False,
+                                                         mode="max")
+
         csv_logger = pl_loggers.CSVLogger(self.log_folder_root + "active_logs_" + self.params['strategy_name'],
                                           name='logger_round_' + str(self.round))
 
         trainer = pl.Trainer(logger=csv_logger,
                              max_epochs=self.params['n_epoch'],
-                             callbacks=[checkpoint_callback],
+                             callbacks=[checkpoint_callback, early_stop_callback],
                              accelerator='gpu',
                              devices=1,
                              log_every_n_steps=50,
