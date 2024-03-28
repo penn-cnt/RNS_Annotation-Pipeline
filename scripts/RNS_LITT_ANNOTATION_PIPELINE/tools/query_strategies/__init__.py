@@ -1,20 +1,20 @@
 from .random_sampling import RandomSampling
 from .least_confidence import LeastConfidence, LeastConfidenceRNS
-from .margin_sampling import MarginSampling
+from .margin_sampling import MarginSampling, MarginSamplingRNS
 from .entropy_sampling import EntropySampling, EntropySamplingRNS
 from .least_confidence_dropout import LeastConfidenceDropout,LeastConfidenceDropoutRNS
-from .margin_sampling_dropout import MarginSamplingDropout
+from .margin_sampling_dropout import MarginSamplingDropout, MarginSamplingDropoutRNS
 from .entropy_sampling_dropout import EntropySamplingDropout,EntropySamplingDropoutRNS
 from .kmeans_sampling import KMeansSampling
 from .kcenter_greedy import KCenterGreedy
-from .bayesian_active_learning_disagreement_dropout import BALDDropout
+from .bayesian_active_learning_disagreement_dropout import BALDDropout, BALDDropoutRNS
 from .adversarial_bim import AdversarialBIM
 from .adversarial_deepfool import AdversarialDeepFool
 
 from .kcenter_greedy_pca import KCenterGreedyPCA
 from .kmeans_sampling_gpu import KMeansSamplingGPU
 from .var_ratio import VarRatio
-from .mean_std import MeanSTD
+from .mean_std import MeanSTD, MeanSTDRNS
 from .badge_sampling import BadgeSampling
 from .ceal import CEALSampling
 from .loss_prediction import LossPredictionLoss
