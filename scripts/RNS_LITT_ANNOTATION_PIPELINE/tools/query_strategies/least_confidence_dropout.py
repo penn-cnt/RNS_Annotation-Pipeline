@@ -22,16 +22,11 @@ class LeastConfidenceDropoutRNS(Strategy):
         unlabeled_idxs, unlabeled_data = self.dataset.get_train_data_unaugmented()
         probs, seq_len = self.predict_prob_dropout(unlabeled_data,n_drop=self.n_drop)
         uncertainties = probs.max(1)[0]
+        uncertainties = self.smoothing_prediction(uncertainties, 8)
 
-        uncertainties, seq_len = self.dataset.get_slice_from_episode(uncertainties, seq_len, ~unlabeled_idxs)
-        uncertainties = np.concatenate(uncertainties)
-
-        threshold = 0.97
-
-        metrics = self.dataset.combine_window_to_episode(threshold - uncertainties, seq_len)
-        to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
+        to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, unlabeled_idxs, n)
 
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
-        print('selected', np.sum(to_select), threshold)
+        print('selected', np.sum(to_select))
         assert len(to_select) == len(unlabeled_idxs)
         return unlabeled_idxs[to_select.astype(bool)]

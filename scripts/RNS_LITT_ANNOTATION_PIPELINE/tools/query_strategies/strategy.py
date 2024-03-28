@@ -128,5 +128,27 @@ class Strategy:
                 break
         return to_select_arr
 
+    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=0.3, scaling=0.5, descending = False):
+        if descending:
+            indices = np.argsort(-uncertainties)
+        else:
+            indices = np.argsort(uncertainties)
+        original_order = indices.argsort()
+        cdf = np.arange(1, len(uncertainties) + 1) / len(uncertainties)
+        linear_data = np.interp(cdf, (cdf.min(), cdf.max()), (0, 1)) ** power_factor
 
+        uncertainties_metric = scaling - linear_data[original_order]
 
+        uncertainties_metric, seq_len = self.dataset.get_slice_from_episode(uncertainties_metric, seq_len,
+                                                                            ~unlabeled_idxs)
+        uncertainties_metric = np.concatenate(uncertainties_metric)
+
+        metrics = self.dataset.combine_window_to_episode(uncertainties_metric, seq_len)
+        to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
+
+        return to_select
+
+    def smoothing_prediction(self, data, window_size):
+        weights = np.ones(window_size) / window_size
+        smoothed_data = np.convolve(data, weights, mode='same')
+        return smoothed_data

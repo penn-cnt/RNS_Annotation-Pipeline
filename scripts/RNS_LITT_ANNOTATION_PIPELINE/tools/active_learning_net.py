@@ -78,7 +78,7 @@ class Net:
     def predict(self, data):
         predictions = self.run_prediction(data)
         output_list = []
-        for pred, y, emb, seq_len in predictions:
+        for pred, y, emb, emb_t, seq_len in predictions:
             output_list.append(pred)
 
         pred_raw = torch.vstack(output_list).float()
@@ -91,7 +91,7 @@ class Net:
         output_list = []
         seq_len_list = []
         m = nn.Softmax(dim=1)
-        for pred, y, emb, seq_len in predictions:
+        for pred, y, emb, emb_t, seq_len in predictions:
             output_list.append(pred)
             seq_len_list.append(seq_len)
 
@@ -112,7 +112,7 @@ class Net:
         for predictions in prediction_list:
             output_list = []
             seq_len_list = []
-            for pred, y, emb, seq_len in predictions:
+            for pred, y, emb, emb_t, seq_len in predictions:
                 output_list.append(pred)
                 seq_len_list.append(seq_len)
             pred_raw = torch.vstack(output_list).float()
@@ -137,16 +137,19 @@ class Net:
         output_list_list = []
         for predictions in prediction_list:
             output_list = []
-            for pred, y, emb in predictions:
+            seq_len_list = []
+            for pred, y, emb, emb_t, seq_len in predictions:
                 output_list.append(pred)
+                seq_len_list.append(seq_len)
             pred_raw = torch.vstack(output_list).float()
             probs = m(pred_raw)
             output_list_list.append(probs)
 
         prob_dp = torch.stack(output_list_list)
+        seq_len_out = torch.tensor([item for sublist in seq_len_list for item in sublist])
         self.net.enable_mc_dropout = False
 
-        return prob_dp
+        return prob_dp, seq_len_out
 
     def get_model(self):
         return self.net
@@ -154,26 +157,32 @@ class Net:
     def get_embeddings(self, data, return_target=False):
         predictions = self.run_prediction(data)
         emb_list = []
+        emb_t_list = []
         target_list = []
-        for pred, y, emb, seq_len in predictions:
+        seq_len_list = []
+        for pred, y, emb, emb_t, seq_len in predictions:
             emb_list.append(emb)
+            emb_t_list.append(emb_t)
             target_list.append(y)
+            seq_len_list.append(seq_len)
         emb = torch.vstack(emb_list).float()
+        emb_t = torch.vstack(emb_t_list).float()
         target = torch.concat(target_list)
         if return_target:
-            return emb, target
+            return emb, emb_t, target, torch.tensor([item for sublist in seq_len_list for item in sublist])
         else:
-            return emb
+            return emb, emb_t, torch.tensor([item for sublist in seq_len_list for item in sublist])
 
     def get_grad_embeddings(self, data):
         predictions = self.run_prediction(data)
         output_list = []
         emb_list = []
+        seq_len_list = []
         m = nn.Softmax(dim=1)
-        for pred, y, emb in predictions:
+        for pred, y, emb, emb_t, seq_len in predictions:
             output_list.append(pred)
             emb_list.append(emb)
-
+            seq_len_list.append(seq_len)
         emb = torch.vstack(emb_list)
         out = emb.data.cpu().numpy()
         pred_raw = torch.vstack(output_list)
@@ -193,4 +202,4 @@ class Net:
                     embeddings[j][embDim * c: embDim * (c + 1)] = deepcopy(out[j]) * (
                             -1 * batchProbs[j][c]) * -1.0
 
-        return embeddings
+        return embeddings, torch.tensor([item for sublist in seq_len_list for item in sublist])

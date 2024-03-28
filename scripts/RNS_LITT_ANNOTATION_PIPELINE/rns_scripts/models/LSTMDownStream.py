@@ -48,20 +48,20 @@ class SupervisedDownstream(pl.LightningModule):
         x = pack_sequence(x, enforce_sorted=False)
         x, (_, _) = self.lstm(x)
         x, out_len = pad_packed_sequence(x, batch_first=True)
-        x = torch.concat(unpad_sequence(x, out_len, batch_first=True))
+        emb_t = torch.concat(unpad_sequence(x, out_len, batch_first=True))
 
-        x = self.dp(x)
+        x = self.dp(emb_t)
 
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         pred = self.fc4(x)
 
-        return pred, emb
+        return pred, emb, emb_t
 
     def training_step(self, batch, batch_idx):
         x, y, seq_len = batch
         self.enable_mc_dropout = True
-        pred, _ = self(x, seq_len)
+        pred, _, _ = self(x, seq_len)
         self.enable_mc_dropout = False
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
@@ -72,7 +72,7 @@ class SupervisedDownstream(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y, seq_len = batch
-        pred, _ = self(x, seq_len)
+        pred, _, _ = self(x, seq_len)
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')
@@ -98,9 +98,9 @@ class SupervisedDownstream(pl.LightningModule):
     def predict_step(self, batch, batch_idx):
         # print(batch)
         x, y, seq_len = batch
-        pred, emb = self(x, seq_len)
+        pred, emb, emb_t = self(x, seq_len)
         # Logging to TensorBoard (if installed) by default
-        return pred, y, emb, seq_len
+        return pred, y, emb, emb_t, seq_len
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
