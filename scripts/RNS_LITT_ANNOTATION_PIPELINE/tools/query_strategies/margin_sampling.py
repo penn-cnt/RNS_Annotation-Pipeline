@@ -24,4 +24,4 @@ class MarginSamplingRNS(Strategy):
         to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, unlabeled_idxs, n)
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
         print('selected', np.sum(to_select))
-        return unlabeled_idxs[uncertainties.sort()[1][:n]]
+        return unlabeled_idxs[to_select.astype(bool)]

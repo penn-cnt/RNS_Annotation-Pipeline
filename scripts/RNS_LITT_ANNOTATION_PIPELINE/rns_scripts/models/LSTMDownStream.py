@@ -60,9 +60,9 @@ class SupervisedDownstream(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y, seq_len = batch
-        self.enable_mc_dropout = True
+        # self.enable_mc_dropout = True
         pred, _, _ = self(x, seq_len)
-        self.enable_mc_dropout = False
+        # self.enable_mc_dropout = False
         pred = self.softmax(pred)
         label = F.one_hot(y, num_classes=2).squeeze()
         loss = sigmoid_focal_loss(pred.float(), label.float(), alpha=self.alpha, gamma=self.gamma, reduction='mean')

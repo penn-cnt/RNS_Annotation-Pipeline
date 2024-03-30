@@ -24,6 +24,7 @@ class MeanSTDRNS(Strategy):
         probs, seq_len = self.predict_prob_dropout_split(unlabeled_data, n_drop=self.n_drop)
         sigma_c = np.std(probs.numpy(), axis=0)
         uncertainties = torch.from_numpy(np.mean(sigma_c, axis=-1))
+        uncertainties = self.smoothing_prediction(uncertainties, 8)
         to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, unlabeled_idxs, n, descending=True)
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
         print('selected', np.sum(to_select))
