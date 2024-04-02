@@ -4,7 +4,7 @@ from query_strategies import RandomSampling, LeastConfidence, MarginSampling, En
     AdversarialBIM, AdversarialDeepFool, VarRatio, MeanSTD, BadgeSampling, CEALSampling, \
     LossPredictionLoss, VAAL, WAAL, \
     LeastConfidenceRNS, LeastConfidenceDropoutRNS, EntropySamplingRNS, EntropySamplingDropoutRNS, MarginSamplingRNS, \
-    MarginSamplingDropoutRNS, BALDDropoutRNS, MeanSTDRNS
+    MarginSamplingDropoutRNS, BALDDropoutRNS, MeanSTDRNS ,KMeansSamplingRNS, KCenterGreedyRNS, KCenterGreedyPCARNS
 
 
 def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=False):
@@ -72,13 +72,13 @@ def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=Fa
         elif STRATEGY_NAME == 'EntropySamplingDropout':
             return EntropySamplingDropoutRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KMeansSampling':
-            return KMeansSampling(dataset, net, args_input, args_task)
+            return KMeansSamplingRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KMeansSamplingGPU':
             return KMeansSamplingGPU(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KCenterGreedy':
-            return KCenterGreedy(dataset, net, args_input, args_task)
+            return KCenterGreedyRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KCenterGreedyPCA':
-            return KCenterGreedyPCA(dataset, net, args_input, args_task)
+            return KCenterGreedyPCARNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'BALDDropout':
             return BALDDropoutRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'VarRatio':

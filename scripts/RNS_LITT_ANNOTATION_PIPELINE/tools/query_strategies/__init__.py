@@ -5,16 +5,16 @@ from .entropy_sampling import EntropySampling, EntropySamplingRNS
 from .least_confidence_dropout import LeastConfidenceDropout,LeastConfidenceDropoutRNS
 from .margin_sampling_dropout import MarginSamplingDropout, MarginSamplingDropoutRNS
 from .entropy_sampling_dropout import EntropySamplingDropout,EntropySamplingDropoutRNS
-from .kmeans_sampling import KMeansSampling
-from .kcenter_greedy import KCenterGreedy
+from .kmeans_sampling import KMeansSampling, KMeansSamplingRNS
+from .kcenter_greedy import KCenterGreedy, KCenterGreedyRNS
 from .bayesian_active_learning_disagreement_dropout import BALDDropout, BALDDropoutRNS
+from .kcenter_greedy_pca import KCenterGreedyPCA, KCenterGreedyPCARNS
+from .mean_std import MeanSTD, MeanSTDRNS
+
 from .adversarial_bim import AdversarialBIM
 from .adversarial_deepfool import AdversarialDeepFool
-
-from .kcenter_greedy_pca import KCenterGreedyPCA
 from .kmeans_sampling_gpu import KMeansSamplingGPU
 from .var_ratio import VarRatio
-from .mean_std import MeanSTD, MeanSTDRNS
 from .badge_sampling import BadgeSampling
 from .ceal import CEALSampling
 from .loss_prediction import LossPredictionLoss
