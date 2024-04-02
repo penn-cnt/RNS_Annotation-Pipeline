@@ -4,6 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
+
 class KCenterGreedyPCA(Strategy):
     def __init__(self, dataset, net, args_input, args_task):
         super(KCenterGreedyPCA, self).__init__(dataset, net, args_input, args_task)
@@ -13,7 +14,7 @@ class KCenterGreedyPCA(Strategy):
         embeddings = self.get_embeddings(train_data)
         embeddings = embeddings.numpy()
 
-        #downsampling embeddings if feature dim > 50
+        # downsampling embeddings if feature dim > 50
         if len(embeddings[0]) > 50:
             pca = PCA(n_components=50)
             embeddings = pca.fit_transform(embeddings)
@@ -35,5 +36,37 @@ class KCenterGreedyPCA(Strategy):
             labeled_idxs[q_idx] = True
             mat = np.delete(mat, q_idx_, 0)
             mat = np.append(mat, dist_mat[~labeled_idxs, q_idx][:, None], axis=1)
-            
+
         return np.arange(self.dataset.n_pool)[(self.dataset.labeled_idxs ^ labeled_idxs)]
+
+
+class KCenterGreedyPCARNS(Strategy):
+    def __init__(self, dataset, net, args_input, args_task):
+        super(KCenterGreedyPCARNS, self).__init__(dataset, net, args_input, args_task)
+
+    def query(self, n):
+        labeled_idxs, train_data = self.dataset.get_train_data_unaugmented()
+        embeddings, embeddings_t, seq_len = self.get_embeddings(train_data)
+        embeddings = embeddings_t.numpy()
+
+        # downsampling embeddings if feature dim > 50
+        if len(embeddings[0]) > 50:
+            pca = PCA(n_components=50)
+            embeddings = pca.fit_transform(embeddings)
+        embeddings = embeddings.astype(np.float16)
+
+        norm_data = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+        dist_mat = np.dot(norm_data, norm_data.T)
+        mat = dist_mat[~labeled_idxs, :][:, labeled_idxs]
+
+        for i in tqdm(range(n), ncols=100):
+            mat_min = mat.min(axis=1)
+            q_idx_ = mat_min.argmax()
+            q_idx = np.arange(self.dataset.n_pool)[~labeled_idxs][q_idx_]
+            labeled_idxs[q_idx] = True
+            mat = np.delete(mat, q_idx_, 0)
+            mat = np.append(mat, dist_mat[~labeled_idxs, q_idx][:, None], axis=1)
+        output = np.arange(self.dataset.n_pool)[(self.dataset.labeled_idxs ^ labeled_idxs)]
+        output = self.keep_continuous_segments(output, 8)
+
+        return output

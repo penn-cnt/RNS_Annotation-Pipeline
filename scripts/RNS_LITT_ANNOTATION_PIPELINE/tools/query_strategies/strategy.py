@@ -128,7 +128,8 @@ class Strategy:
                 break
         return to_select_arr
 
-    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=1, scaling=0.2, descending = False):
+    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=1, scaling=0.2,
+                                       descending=False):
         if descending:
             indices = np.argsort(-uncertainties)
         else:
@@ -152,3 +153,13 @@ class Strategy:
         weights = np.ones(window_size) / window_size
         smoothed_data = np.convolve(data, weights, mode='same')
         return smoothed_data
+
+    def keep_continuous_segments(self, arr, n):
+        changed_ind = np.where(np.sign(np.diff(arr) - 1) == 1)[0]
+        valid_split = np.where(np.diff(changed_ind) >= n)[0]
+        start_ind = changed_ind[valid_split] + 1
+        end_ind = changed_ind[valid_split + 1] + 1
+        cleaned_arr = np.empty(0, dtype=int)
+        for i in range(len(valid_split)):
+            cleaned_arr = np.hstack((cleaned_arr, arr[start_ind[i]:end_ind[i]]))
+        return cleaned_arr
