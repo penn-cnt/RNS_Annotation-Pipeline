@@ -181,19 +181,19 @@ class Net:
         m = nn.Softmax(dim=1)
         for pred, y, emb, emb_t, seq_len in predictions:
             output_list.append(pred)
-            emb_list.append(emb)
+            emb_list.append(emb_t)
             seq_len_list.append(seq_len)
         emb = torch.vstack(emb_list)
         out = emb.data.cpu().numpy()
         pred_raw = torch.vstack(output_list)
-        batchProbs = m(pred_raw).data.cpu().numpy()
+        batchProbs = m(pred_raw.float()).data.cpu().numpy()
         maxInds = np.argmax(batchProbs, 1)
 
         nLab = batchProbs.shape[1]
         embDim = emb.shape[1]
-        embeddings = np.zeros([len(data), embDim * nLab])
+        embeddings = np.zeros([len(emb), embDim * nLab])
 
-        for j in range(len(data)):
+        for j in range(len(emb)):
             for c in range(nLab):
                 if c == maxInds[j]:
                     embeddings[j][embDim * c: embDim * (c + 1)] = deepcopy(out[j]) * (

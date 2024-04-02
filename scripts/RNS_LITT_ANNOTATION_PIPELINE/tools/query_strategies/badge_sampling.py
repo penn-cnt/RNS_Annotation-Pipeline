@@ -3,7 +3,7 @@ import torch
 from .strategy import Strategy
 from scipy import stats
 from sklearn.metrics import pairwise_distances
-import pdb
+# import pdb
 
 '''
 This implementation is originated from https://github.com/JordanAsh/badge.
@@ -50,7 +50,7 @@ def init_centers(X, K):
                     centInds[i] = cent
                     D2[i] = newD[i]
         print(str(len(mu)) + '\t' + str(sum(D2)), flush=True)
-        if sum(D2) == 0.0: pdb.set_trace()
+        # if sum(D2) == 0.0: pdb.set_trace()
         D2 = D2.ravel().astype(float)
         Ddist = (D2 ** 2)/ sum(D2 ** 2)
         customDist = stats.rv_discrete(name='custm', values=(np.arange(len(D2)), Ddist))
