@@ -60,3 +60,14 @@ def init_centers(X, K):
         indsAll.append(ind)
         cent += 1
     return indsAll
+
+class BadgeSamplingRNS(Strategy):
+    def __init__(self, dataset, net, args_input, args_task):
+        super(BadgeSamplingRNS, self).__init__(dataset, net, args_input, args_task)
+
+    def query(self, n):
+        unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
+        gradEmbedding = self.get_grad_embeddings(unlabeled_data)
+        chosen = init_centers(gradEmbedding, 4*n)
+        chosen = self.keep_continuous_segments(chosen,8)
+        return unlabeled_idxs[chosen]

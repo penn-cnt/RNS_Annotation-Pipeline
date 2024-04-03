@@ -4,7 +4,8 @@ from query_strategies import RandomSampling, LeastConfidence, MarginSampling, En
     AdversarialBIM, AdversarialDeepFool, VarRatio, MeanSTD, BadgeSampling, CEALSampling, \
     LossPredictionLoss, VAAL, WAAL, \
     LeastConfidenceRNS, LeastConfidenceDropoutRNS, EntropySamplingRNS, EntropySamplingDropoutRNS, MarginSamplingRNS, \
-    MarginSamplingDropoutRNS, BALDDropoutRNS, MeanSTDRNS ,KMeansSamplingRNS, KCenterGreedyRNS, KCenterGreedyPCARNS
+    MarginSamplingDropoutRNS, BALDDropoutRNS, MeanSTDRNS, KMeansSamplingRNS, KCenterGreedyRNS, KCenterGreedyPCARNS, \
+    BadgeSamplingRNS
 
 
 def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=False):
@@ -86,7 +87,7 @@ def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=Fa
         elif STRATEGY_NAME == 'MeanSTD':
             return MeanSTDRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'BadgeSampling':
-            return BadgeSampling(dataset, net, args_input, args_task)
+            return BadgeSamplingRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'LossPredictionLoss':
             return LossPredictionLoss(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'AdversarialBIM':

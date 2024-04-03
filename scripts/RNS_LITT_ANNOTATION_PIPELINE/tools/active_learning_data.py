@@ -58,6 +58,7 @@ class Data:
             self.combine_window_to_episode(self.Y_train, self.seq_len_train, ~self.labeled_idxs),
             self.args_task['transform'])
 
+
     def get_train_data(self):
         return self.labeled_idxs.copy(), self.handler(self.X_train, self.Y_train, self.args_task['transform_train'])
 
