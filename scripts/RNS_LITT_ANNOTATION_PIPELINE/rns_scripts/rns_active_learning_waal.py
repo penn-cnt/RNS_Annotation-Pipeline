@@ -32,15 +32,15 @@ from models.rns_dataloader import *
 from active_learning_utility import get_strategy
 from active_learning_data import Data
 from active_learning_net import Net
-from active_learning_waal import Net_WAAL, WAAL, Classifier,Discriminator
+from active_learning_waal import Net_WAAL, WAAL, Classifier, Discriminator
 from copy import deepcopy
 from models.SwaV import SwaV
 from models.LSTMDownStream import SupervisedDownstream
 from models.rns_dataloader import Handler_joint
 import warnings
 import pickle
-warnings.filterwarnings("ignore")
 
+warnings.filterwarnings("ignore")
 
 # In[3]:
 
@@ -62,7 +62,6 @@ import pytorch_lightning
 
 pytorch_lightning.utilities.seed.seed_everything(seed=random_seed, workers=True)
 
-
 # In[4]:
 
 
@@ -70,12 +69,10 @@ data_dir = "../../../user_data/"
 log_folder_root = '../../../user_data/logs/'
 ckpt_folder_root = '../../../user_data/checkpoints/'
 
-
 # In[5]:
 
 
 strategy_name = 'WAAL'
-
 
 # In[6]:
 
@@ -83,7 +80,6 @@ strategy_name = 'WAAL'
 nStart = 1
 nEnd = 20
 nQuery = 2
-
 
 # In[7]:
 
@@ -97,7 +93,6 @@ args_task = {'n_epoch': 50,
              'loader_te_args': {'batch_size': 2, 'num_workers': 4, 'collate_fn': collate_fn_WAAL,
                                 'drop_last': True, 'persistent_workers': True}
              }
-
 
 # In[8]:
 
@@ -131,7 +126,6 @@ print(train_label.shape)
 print(test_data.shape)
 print(test_label.shape)
 
-
 # In[10]:
 
 
@@ -143,7 +137,6 @@ index_train = np.concatenate(train_index)
 index_test = np.concatenate(test_index)
 seq_len_train = np.array([y.shape[0] for y in train_label])
 seq_len_test = np.array([y.shape[0] for y in test_label])
-
 
 # In[11]:
 
@@ -162,18 +155,13 @@ print(NUM_INIT_LB)
 print(NUM_QUERY)
 print(NUM_ROUND)
 
-
 # In[11]:
-
-
-
 
 
 # In[12]:
 
 
 dataset = Data(X_train, y_train, X_test, y_test, seq_len_train, seq_len_test, RNS_Active_by_episode_LSTM, args_task)
-
 
 # In[13]:
 
@@ -187,12 +175,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 handler_joint = Handler_joint
 net = Net_WAAL(model, args_task, device, handler_joint, ckpt_folder_root='rns_active', log_folder_root='rns_active')
 
-
 # In[14]:
 
 
 strategy = get_strategy(strategy_name, dataset, net, None, args_task, rns_data=True)
-
 
 # In[15]:
 
@@ -200,11 +186,10 @@ strategy = get_strategy(strategy_name, dataset, net, None, args_task, rns_data=T
 # initial round of training, round 0
 dataset.initialize_labels(NUM_INIT_LB)
 
-
 # In[16]:
 
 
-ids,_ = dataset.get_labeled_data()
+ids, _ = dataset.get_labeled_data()
 
 selected_inds = {}
 selected_inds[0] = ids
@@ -216,15 +201,12 @@ if not os.path.exists(log_folder_root + 'rns_active_selected/' + strategy_name):
 with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'selected_indices.pkl', 'wb') as f:
     pickle.dump(selected_inds, f)
 
-
 # In[17]:
 
 
-strategy.train(model_name = 'WAAL')
-
+strategy.train(model_name='WAAL')
 
 # In[ ]:
-
 
 
 for rd in range(1, NUM_ROUND + 1):
@@ -236,30 +218,27 @@ for rd in range(1, NUM_ROUND + 1):
     max_row = logs.iloc[max_ind]
     ckpt_directory = ckpt_folder_root + 'rns_active/active_checkpoints_' + strategy_name
     ckpt_files = os.listdir(ckpt_directory)
-    load_file_name = strategy_name + '_round_' + str(rd - 1) + '-step=' + str(int(max_row['step']+1))
+    load_file_name = strategy_name + '_round_' + str(rd - 1) + '-step=' + str(int(max_row['step'] + 1))
     print(load_file_name)
 
     ind = next((i for i, s in enumerate(ckpt_files) if load_file_name in s), None)
     print(ind, ckpt_files[ind])
-    strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind], backbone=swav.backbone)
+    strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind],
+                                          net_fea=swav.backbone,
+                                          net_clf=Classifier(2048),
+                                          net_dis=Discriminator(2048))
 
     q_idxs = strategy.query(NUM_QUERY * 90)
 
     with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'selected_indices.pkl', 'rb') as f:
-    # Load the content of the file into a Python object
+        # Load the content of the file into a Python object
         selected_inds = pickle.load(f)
     selected_inds[rd] = q_idxs
     with open(log_folder_root + 'rns_active_selected/' + strategy_name + '/' + 'selected_indices.pkl', 'wb') as f:
         pickle.dump(selected_inds, f)
-# Now you can use the dictionary object as usual
     strategy.update(q_idxs)
     strategy.net.round = rd
     strategy.net.net.load_state_dict(modelstate)
-    strategy.train(model_name = 'WAAL')
-
+    strategy.train(model_name='WAAL')
 
 # In[ ]:
-
-
-
-
