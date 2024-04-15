@@ -73,7 +73,11 @@ class Strategy:
                 labeled_idxs, labeled_data = self.dataset.get_labeled_data()
                 X_labeled, Y_labeled = self.dataset.get_partial_labeled_data()
                 X_unlabeled, Y_unlabeled = self.dataset.get_partial_unlabeled_data()
-                self.net.train(labeled_data, X_labeled, Y_labeled, X_unlabeled, Y_unlabeled)
+                # print(labeled_idxs, labeled_data)
+                # print(X_labeled.shape, Y_labeled.shape)
+                # print(X_unlabeled.shape, Y_unlabeled.shape)
+                self.net.train(labeled_data, X_labeled, Y_labeled, X_unlabeled, Y_unlabeled,
+                               test_data=self.dataset.get_test_data())
             else:
                 raise NotImplementedError
 

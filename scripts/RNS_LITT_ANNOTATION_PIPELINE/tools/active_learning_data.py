@@ -58,7 +58,6 @@ class Data:
             self.combine_window_to_episode(self.Y_train, self.seq_len_train, ~self.labeled_idxs),
             self.args_task['transform'])
 
-
     def get_train_data(self):
         return self.labeled_idxs.copy(), self.handler(self.X_train, self.Y_train, self.args_task['transform_train'])
 
@@ -73,11 +72,13 @@ class Data:
 
     def get_partial_labeled_data(self):
         labeled_idxs = np.arange(self.n_pool)[self.labeled_idxs]
-        return self.X_train[labeled_idxs], self.Y_train[labeled_idxs]
+        return self.combine_window_to_episode(self.X_train, self.seq_len_train,self.labeled_idxs), \
+            self.combine_window_to_episode(self.Y_train,self.seq_len_train,self.labeled_idxs)
 
     def get_partial_unlabeled_data(self):
         unlabeled_idxs = np.arange(self.n_pool)[~self.labeled_idxs]
-        return self.X_train[unlabeled_idxs], self.Y_train[unlabeled_idxs]
+        return self.combine_window_to_episode(self.X_train, self.seq_len_train,~self.labeled_idxs), \
+            self.combine_window_to_episode(self.Y_train,self.seq_len_train,~self.labeled_idxs)
 
     def cal_test_acc(self, preds):
         return sklearn.metrics.accuracy_score(preds, self.Y_test)
