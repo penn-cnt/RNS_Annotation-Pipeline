@@ -4,6 +4,7 @@ from .strategy import Strategy
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import torch.optim as optim
+from tqdm import tqdm
 
 
 '''
@@ -69,7 +70,7 @@ class LossPredictionLossRNS(Strategy):
 		uncertainty = torch.tensor([]).cuda()
 		seq_len_list = []
 		with torch.no_grad():
-			for x, y, seq_len in loader:
+			for x, y, seq_len in tqdm(loader):
 				x, y = x.cuda(), y.cuda()
 				lb_z, feature = self.net.net.net_fea(x)
 				lb_z = lb_z.view(-1, 2048)

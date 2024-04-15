@@ -115,6 +115,11 @@ class WAAL(pl.LightningModule):
 
         opt_fea, opt_clf, opt_dis = self.optimizers()
 
+        opt_fea._on_before_step = lambda: self.trainer.profiler.start("optimizer_step")
+        opt_fea._on_after_step = lambda: self.trainer.profiler.stop("optimizer_step")
+        opt_dis._on_before_step = lambda: self.trainer.profiler.start("optimizer_step")
+        opt_dis._on_after_step = lambda: self.trainer.profiler.stop("optimizer_step")
+
         # label_x, label_y = label_x.to(self.device), label_y.to(self.device)
         # unlabel_x = unlabel_x.to(self.device)
 

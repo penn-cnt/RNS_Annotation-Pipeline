@@ -2,6 +2,7 @@ import numpy as np
 from .strategy import Strategy
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 '''
 This implementation is with reference of https://github.com/cjshui/WAAL.
@@ -105,7 +106,7 @@ class WAALRNS(Strategy):
         scores = []
         seq_len_list = []
         with torch.no_grad():
-            for x, y, seq_len in loader_te:
+            for x, y, seq_len in tqdm(loader_te):
                 x, y = x.cuda(), y.cuda()
                 latent = self.net.net.net_fea(x).view(-1, 2048)
                 out = self.net.net.net_dis(latent).cpu()

@@ -153,6 +153,12 @@ class LPL(pl.LightningModule):
 
         opt_fea, opt_clf, opt_lpl = self.optimizers()
 
+        opt_fea._on_before_step = lambda: self.trainer.profiler.start("optimizer_step")
+        opt_fea._on_after_step = lambda: self.trainer.profiler.stop("optimizer_step")
+        opt_lpl._on_before_step = lambda: self.trainer.profiler.start("optimizer_step")
+        opt_lpl._on_after_step = lambda: self.trainer.profiler.stop("optimizer_step")
+
+
         # training feature extractor and predictor
         self.set_requires_grad(self.net_clf, True)
         self.set_requires_grad(self.net_fea, False)
@@ -169,10 +175,6 @@ class LPL(pl.LightningModule):
 
         # prediction loss (based on provided classifier)
         # pred_loss = F.cross_entropy(lb_out, label_y)
-
-
-
-
 
         label = F.one_hot(y, num_classes=2).squeeze()
         target_loss = sigmoid_focal_loss(lb_out.float(), label.float(), alpha=self.loss_alpha, gamma=self.loss_gamma,
