@@ -168,7 +168,7 @@ dataset = Data(X_train, y_train, X_test, y_test, seq_len_train, seq_len_test, RN
 
 swav = SwaV().load_from_checkpoint(
     ckpt_folder_root + 'rns_swav_50_12/rns_swav-epoch=82-swav_loss=2.58204.ckpt')
-model = WAAL(swav.backbone, Classifier(2048), Discriminator(2048))
+model = WAAL(swav.backbone, Classifier(2048), Discriminator(512))
 # initialize model and save the model state
 modelstate = deepcopy(model.state_dict())
 device = "cuda" if torch.cuda.is_available() else "cpu"

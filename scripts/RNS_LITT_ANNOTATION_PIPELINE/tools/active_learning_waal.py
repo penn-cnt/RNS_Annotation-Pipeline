@@ -125,18 +125,19 @@ class WAAL(pl.LightningModule):
 
         # training feature extractor and predictor
         self.set_requires_grad(self.net_clf, True)
-        self.set_requires_grad(self.net_fea, True, exclude=['0','1','2','3','4','5','6'])
+        # self.set_requires_grad(self.net_fea, True, exclude=['0','1','2','3','4','5','6'])
+        self.set_requires_grad(self.net_fea, False)
         self.set_requires_grad(self.net_dis, False)
 
         lb_z = self.net_fea(label_x).view(-1, 2048)
         unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
-        # lb_out, _, lb_z = self.net_clf(lb_z, seq_len_label)
-        # _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
+        lb_out, _, lb_z = self.net_clf(lb_z, seq_len_label)
+        _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         opt_fea.zero_grad()
         opt_clf.zero_grad()
 
-        lb_out, _, _ = self.net_clf(lb_z,seq_len_label)
+        # lb_out, _, _ = self.net_clf(lb_z,seq_len_label)
 
         # prediction loss (based on provided classifier)
         # pred_loss = F.cross_entropy(lb_out, label_y)
@@ -151,13 +152,14 @@ class WAAL(pl.LightningModule):
         with torch.no_grad():
             lb_z = self.net_fea(label_x).view(-1, 2048)
             unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
+            _, _, lb_z = self.net_clf(lb_z, seq_len_label)
+            _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         gp = self.gradient_penalty(self.net_dis, unlb_z[:max_len], lb_z[:max_len])
 
         loss = pred_loss + self.alpha * wassertein_distance + self.alpha * gp * 2
 
         self.manual_backward(loss)
-        opt_fea.step()
         opt_clf.step()
 
         self.set_requires_grad(self.net_fea, False)
@@ -167,6 +169,8 @@ class WAAL(pl.LightningModule):
         with torch.no_grad():
             lb_z = self.net_fea(label_x).view(-1, 2048)
             unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
+            _, _, lb_z = self.net_clf(lb_z, seq_len_label)
+            _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         for _ in range(10):
             # gradient ascent for multiple times like GANS training

@@ -99,7 +99,7 @@ class LossNet(pl.LightningModule):
         self.FC4 = nn.Linear(num_channels[3], interm_dim)
         self.FCt = nn.Linear(512, interm_dim)
 
-        self.linear = nn.Linear(5 * interm_dim, 1)
+        self.linear = nn.Linear(4 * interm_dim, 1)
 
     def forward(self, features):
         out1 = self.GAP1(features[0])
@@ -118,10 +118,10 @@ class LossNet(pl.LightningModule):
         out4 = out4.view(out4.size(0), -1)
         out4 = F.relu(self.FC4(out4))
 
-        out5 = features[4]
-        out5 = F.relu(self.FCt(out5))
+        # out5 = features[4]
+        # out5 = F.relu(self.FCt(out5))
 
-        out = self.linear(torch.cat((out1, out2, out3, out4, out5), 1))
+        out = self.linear(torch.cat((out1, out2, out3, out4), 1))
         return out
 
 
@@ -162,6 +162,7 @@ class LPL(pl.LightningModule):
         # training feature extractor and predictor
         self.set_requires_grad(self.net_clf, True)
         self.set_requires_grad(self.net_fea, False)
+        # self.set_requires_grad(self.net_fea, True, exclude=['0', '1', '2', '3', '4', '5'])
         self.set_requires_grad(self.net_lpl, True)
 
         lb_z, feature = self.net_fea(x)
@@ -179,7 +180,13 @@ class LPL(pl.LightningModule):
         label = F.one_hot(y, num_classes=2).squeeze()
         target_loss = sigmoid_focal_loss(lb_out.float(), label.float(), alpha=self.loss_alpha, gamma=self.loss_gamma,
                                        reduction='none').mean(1)
-        feature.append(emb_t)
+        # feature.append(emb_t)
+
+        if self.global_step >= 150:
+            feature[0] = feature[0].detach()
+            feature[1] = feature[1].detach()
+            feature[2] = feature[2].detach()
+            feature[3] = feature[3].detach()
 
         pred_loss = self.net_lpl(feature)
         pred_loss = pred_loss.view(pred_loss.size(0))
@@ -250,7 +257,7 @@ class LPL(pl.LightningModule):
         # Define optimizers for feature extractor and classifier
         optimizer_fea = optim.Adam(self.net_fea.parameters(), lr=1e-3)
         optimizer_clf = optim.Adam(self.net_clf.parameters(), lr=1e-3)
-        optimizer_lpl = optim.Adam(self.net_lpl.parameters(), lr=1e-2)
+        optimizer_lpl = optim.Adam(self.net_lpl.parameters(), lr=5e-3)
 
         # Return a list of optimizers and schedulers
         return optimizer_fea, optimizer_clf, optimizer_lpl
