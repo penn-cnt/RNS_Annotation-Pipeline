@@ -226,7 +226,7 @@ for rd in range(1, NUM_ROUND + 1):
     strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind],
                                           net_fea=swav.backbone,
                                           net_clf=Classifier(2048),
-                                          net_dis=Discriminator(2048))
+                                          net_dis=Discriminator(512))
 
     q_idxs = strategy.query(NUM_QUERY * 90)
 
