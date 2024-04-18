@@ -617,7 +617,7 @@ def get_data(file_names, split=0.7):
     return train_data, train_label, test_data, test_label, train_index, test_index
 
 
-def get_data_by_episode(file_names, split=0.7, patient_out=True):
+def get_data_by_episode(file_names, file_path = 'rns_test_cache/', split=0.7, patient_out=True):
     train_data = []
     train_label = []
     train_index = []
@@ -629,7 +629,7 @@ def get_data_by_episode(file_names, split=0.7, patient_out=True):
         split_n = int(len(file_names) * (split))
 
         for n, name in tqdm(enumerate(file_names)):
-            cache = np.load(data_dir + 'rns_test_cache/' + name, allow_pickle=True)
+            cache = np.load(data_dir + file_path + '/'+ name, allow_pickle=True)
             data = cache.item().get('data')
             label = cache.item().get('label')
             index = cache.item().get('indices')
@@ -663,7 +663,7 @@ def get_data_by_episode(file_names, split=0.7, patient_out=True):
 
     else:
         for name in tqdm(file_names):
-            cache = np.load(data_dir + 'rns_test_cache/' + name, allow_pickle=True)
+            cache = np.load(data_dir + file_path + '/'+ name, allow_pickle=True)
             data = cache.item().get('data')
             label = cache.item().get('label')
             index = cache.item().get('indices')

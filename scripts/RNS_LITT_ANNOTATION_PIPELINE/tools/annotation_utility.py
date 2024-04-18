@@ -215,7 +215,7 @@ class Annotations:
 
                 ch1 = row['ch1']
                 ch2 = row['ch2']
-                ch3 = row['ch2']
+                ch3 = row['ch3']
                 ch4 = row['ch4']
 
                 ch = [ch1, ch2, ch3, ch4]

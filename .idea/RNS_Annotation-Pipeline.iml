@@ -4,6 +4,8 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/core_libraries" />
       <excludeFolder url="file://$MODULE_DIR$/user_data" />
+      <excludeFolder url="file://$MODULE_DIR$/scripts/RNS_LITT_ANNOTATION_PIPELINE/rns_scripts/interrater_annotations" />
+      <excludeFolder url="file://$MODULE_DIR$/scripts/RNS_LITT_ANNOTATION_PIPELINE/rns_scripts/interrater_annotations/data" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

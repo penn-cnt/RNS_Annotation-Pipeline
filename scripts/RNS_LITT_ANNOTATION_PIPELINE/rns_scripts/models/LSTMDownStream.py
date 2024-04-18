@@ -27,6 +27,9 @@ class SupervisedDownstream(pl.LightningModule):
         self.enable_mc_dropout = False
 
     def forward(self, x, seq_len):
+
+        self.set_requires_grad(self.backbone, False)
+
         if self.current_epoch < self.unfreeze_backbone_at_epoch:
             self.backbone.eval()
             x = self.backbone(x)
@@ -105,3 +108,19 @@ class SupervisedDownstream(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
+
+    def set_requires_grad(self, model, requires_grad=True, exclude = None):
+        """
+        Used in training adversarial approach
+        :param model:
+        :param requires_grad:
+        :return:
+        """
+        for param in model.parameters():
+            param.requires_grad = requires_grad
+
+        if exclude is not None:
+            for name, child in model.named_children():
+                if name in exclude:
+                    for param in child.parameters():
+                        param.requires_grad =not requires_grad

@@ -131,13 +131,11 @@ class WAAL(pl.LightningModule):
 
         lb_z = self.net_fea(label_x).view(-1, 2048)
         unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
-        lb_out, _, lb_z = self.net_clf(lb_z, seq_len_label)
-        _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         opt_fea.zero_grad()
         opt_clf.zero_grad()
 
-        # lb_out, _, _ = self.net_clf(lb_z,seq_len_label)
+        lb_out, _, _ = self.net_clf(lb_z,seq_len_label)
 
         # prediction loss (based on provided classifier)
         # pred_loss = F.cross_entropy(lb_out, label_y)
@@ -152,8 +150,6 @@ class WAAL(pl.LightningModule):
         with torch.no_grad():
             lb_z = self.net_fea(label_x).view(-1, 2048)
             unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
-            _, _, lb_z = self.net_clf(lb_z, seq_len_label)
-            _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         gp = self.gradient_penalty(self.net_dis, unlb_z[:max_len], lb_z[:max_len])
 
@@ -161,6 +157,7 @@ class WAAL(pl.LightningModule):
 
         self.manual_backward(loss)
         opt_clf.step()
+        # opt_fea.step()
 
         self.set_requires_grad(self.net_fea, False)
         self.set_requires_grad(self.net_clf, False)
@@ -169,8 +166,6 @@ class WAAL(pl.LightningModule):
         with torch.no_grad():
             lb_z = self.net_fea(label_x).view(-1, 2048)
             unlb_z = self.net_fea(unlabel_x).view(-1, 2048)
-            _, _, lb_z = self.net_clf(lb_z, seq_len_label)
-            _, _, unlb_z = self.net_clf(unlb_z, seq_len_unlabel)
 
         for _ in range(10):
             # gradient ascent for multiple times like GANS training
@@ -300,7 +295,7 @@ class Net_WAAL:
 
     def train(self, data, X_labeled, Y_labeled, X_unlabeled, Y_unlabeled, alpha=1e-3, test_data=None):
         # Define checkpoints and logger
-        ckpt_save_n_step = 75
+        ckpt_save_n_step = 40
 
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=

@@ -182,28 +182,25 @@ class LPL(pl.LightningModule):
                                        reduction='none').mean(1)
         # feature.append(emb_t)
 
-        if self.global_step >= 150:
-            feature[0] = feature[0].detach()
-            feature[1] = feature[1].detach()
-            feature[2] = feature[2].detach()
-            feature[3] = feature[3].detach()
+        backbone_loss = torch.sum(target_loss) / target_loss.size(0)
+        self.manual_backward(backbone_loss)
+        opt_clf.step()
+
+        with torch.no_grad():
+            lb_z, feature = self.net_fea(x)
 
         pred_loss = self.net_lpl(feature)
         pred_loss = pred_loss.view(pred_loss.size(0))
-
-        backbone_loss = torch.sum(target_loss) / target_loss.size(0)
 
         if len(pred_loss) % 2 != 0:
             pred_loss = pred_loss[:-1]
             target_loss = target_loss[:-1]
 
         module_loss = LossPredLoss(pred_loss, target_loss, self.margin)
-        loss = backbone_loss + self.weight * module_loss
+        loss = self.weight * module_loss
 
         self.manual_backward(loss)
 
-        # opt_fea.step()
-        opt_clf.step()
         opt_lpl.step()
 
         self.log("train_loss", backbone_loss, prog_bar=True)

@@ -86,13 +86,13 @@ nQuery = 2
 # In[7]:
 
 
-args_task = {'n_epoch': 40,
+args_task = {'n_epoch': 60,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
-             'loader_tr_args': {'batch_size': 2, 'num_workers': 4, 'collate_fn': collate_fn,
+             'loader_tr_args': {'batch_size': 8, 'num_workers': 4, 'collate_fn': collate_fn,
                                 'drop_last': True, 'persistent_workers': True},
-             'loader_te_args': {'batch_size': 2, 'num_workers': 4, 'collate_fn': collate_fn,
+             'loader_te_args': {'batch_size': 4, 'num_workers': 4, 'collate_fn': collate_fn,
                                 'drop_last': True, 'persistent_workers': True}
              }
 
@@ -239,7 +239,7 @@ for rd in range(1, NUM_ROUND + 1):
 
     ind = next((i for i, s in enumerate(ckpt_files) if load_file_name in s), None)
     print(ind, ckpt_files[ind])
-    strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind], backbone=swav.backbone)
+    strategy.net.net = strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind], backbone=swav.backbone)
 
     q_idxs = strategy.query(NUM_QUERY * 90)
 

@@ -26,7 +26,7 @@ class Net:
         self.ckpt_folder_root = '../../../user_data/checkpoints/' + ckpt_folder_root + '/'
 
     def train(self, data, test_data=None):
-        ckpt_save_n_step = 75
+        ckpt_save_n_step = 20
 
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
                                                            filename=

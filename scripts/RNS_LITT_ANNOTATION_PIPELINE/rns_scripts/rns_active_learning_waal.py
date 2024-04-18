@@ -88,7 +88,7 @@ args_task = {'n_epoch': 50,
              'transform_train': True,
              'strategy_name': strategy_name,
              'transform': False,
-             'loader_tr_args': {'batch_size': 2, 'num_workers': 4, 'collate_fn': collate_fn_WAAL,
+             'loader_tr_args': {'batch_size': 4, 'num_workers': 4, 'collate_fn': collate_fn_WAAL,
                                 'drop_last': True, 'persistent_workers': True},
              'loader_te_args': {'batch_size': 2, 'num_workers': 4, 'collate_fn': collate_fn_WAAL,
                                 'drop_last': True, 'persistent_workers': True}
@@ -168,7 +168,7 @@ dataset = Data(X_train, y_train, X_test, y_test, seq_len_train, seq_len_test, RN
 
 swav = SwaV().load_from_checkpoint(
     ckpt_folder_root + 'rns_swav_50_12/rns_swav-epoch=82-swav_loss=2.58204.ckpt')
-model = WAAL(swav.backbone, Classifier(2048), Discriminator(512))
+model = WAAL(swav.backbone, Classifier(2048), Discriminator(2048))
 # initialize model and save the model state
 modelstate = deepcopy(model.state_dict())
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -226,7 +226,7 @@ for rd in range(1, NUM_ROUND + 1):
     strategy.net.net.load_from_checkpoint(ckpt_directory + '/' + ckpt_files[ind],
                                           net_fea=swav.backbone,
                                           net_clf=Classifier(2048),
-                                          net_dis=Discriminator(512))
+                                          net_dis=Discriminator(2048))
 
     q_idxs = strategy.query(NUM_QUERY * 90)
 
