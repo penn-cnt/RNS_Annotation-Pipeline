@@ -132,7 +132,7 @@ class Strategy:
                 break
         return to_select_arr
 
-    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, percentile = 0.15,
+    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, percentile = 0.2,
                                        descending=False):
         if descending:
             uncertainties = -uncertainties

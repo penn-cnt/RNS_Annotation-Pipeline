@@ -67,6 +67,17 @@ class KCenterGreedyPCARNS(Strategy):
             mat = np.delete(mat, q_idx_, 0)
             mat = np.append(mat, dist_mat[~labeled_idxs, q_idx][:, None], axis=1)
         output = np.arange(self.dataset.n_pool)[(self.dataset.labeled_idxs ^ labeled_idxs)]
-        output = self.keep_continuous_segments(output, 8)
+        norm_data = embeddings_t / np.linalg.norm(embeddings_t, axis=1, keepdims=True)
+        norm_data_core = embeddings_t[output] / np.linalg.norm(embeddings_t[output], axis=1, keepdims=True)
+        similarity_matrix = np.dot(norm_data, norm_data_core.T)
+        dis = np.min(similarity_matrix, 1)
+        dis[output] = 1
+        uncertainties = dis
+        to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, labeled_idxs, n, descending=True)
+        unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
+        print('selected', np.sum(to_select))
+        assert len(to_select) == len(unlabeled_idxs)
+
+        return unlabeled_idxs[to_select.astype(bool)]
 
         return output

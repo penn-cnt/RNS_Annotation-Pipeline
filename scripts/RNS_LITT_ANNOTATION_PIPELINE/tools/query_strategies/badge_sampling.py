@@ -68,6 +68,6 @@ class BadgeSamplingRNS(Strategy):
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
         gradEmbedding, seq_len = self.get_grad_embeddings(unlabeled_data)
-        chosen = init_centers(gradEmbedding, 4*n)
+        chosen = init_centers(gradEmbedding, 5*n)
         chosen = self.keep_continuous_segments(np.sort(chosen),8)
         return unlabeled_idxs[chosen]
