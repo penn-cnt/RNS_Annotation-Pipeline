@@ -132,26 +132,26 @@ class Strategy:
                 break
         return to_select_arr
 
-    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=1, scaling=0.15,
+    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, percentile = 0.15,
                                        descending=False):
         if descending:
-            indices = np.argsort(-uncertainties)
-        else:
-            indices = np.argsort(uncertainties)
-        original_order = indices.argsort()
-        cdf = np.arange(1, len(uncertainties) + 1) / len(uncertainties)
-        linear_data = np.interp(cdf, (cdf.min(), cdf.max()), (0, 1)) ** power_factor
+            uncertainties = -uncertainties
 
-        uncertainties_metric = scaling - linear_data[original_order]
-
+        indices = np.argsort(uncertainties)
+        # original_order = indices.argsort()
+        normalized_data = self.normalize(uncertainties)
+        scaling = normalized_data[indices][int(percentile*len(unlabeled_idxs))]
+        uncertainties_metric = scaling - normalized_data
         uncertainties_metric, seq_len = self.dataset.get_slice_from_episode(uncertainties_metric, seq_len,
                                                                             ~unlabeled_idxs)
         uncertainties_metric = np.concatenate(uncertainties_metric)
-
         metrics = self.dataset.combine_window_to_episode(uncertainties_metric, seq_len)
         to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
 
         return to_select
+
+    def normalize(self, x):
+        return (x - min(x)) / (max(x) - min(x))
 
     def smoothing_prediction(self, data, window_size):
         weights = np.ones(window_size) / window_size
