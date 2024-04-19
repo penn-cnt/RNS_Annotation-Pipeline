@@ -132,7 +132,7 @@ class Strategy:
                 break
         return to_select_arr
 
-    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=1, scaling=0.2,
+    def metrics_distribution_rescaling(self, uncertainties, seq_len, unlabeled_idxs, n, power_factor=1, scaling=0.15,
                                        descending=False):
         if descending:
             indices = np.argsort(-uncertainties)

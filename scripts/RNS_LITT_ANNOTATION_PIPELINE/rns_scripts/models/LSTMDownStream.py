@@ -14,15 +14,15 @@ class SupervisedDownstream(pl.LightningModule):
     def __init__(self, backbone, unfreeze_backbone_at_epoch=100):
         super().__init__()
         self.backbone = backbone
-        self.fc1 = nn.Linear(2048, 512)
-        self.fc2 = nn.Linear(512, 64)
+        self.fc1 = nn.Linear(2048, 256)
+        self.fc2 = nn.Linear(256, 64)
         self.dp = nn.Dropout1d(p=0.2)
-        self.fc3 = nn.Linear(64, 8)
-        self.fc4 = nn.Linear(8, 2)
+        self.fc3 = nn.Linear(64, 2)
+        # self.fc4 = nn.Linear(8, 2)
         self.softmax = nn.Softmax(dim=1)
         self.alpha = 0
         self.gamma = 5
-        self.lstm = nn.LSTM(512, 256, 1, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(256, 128, 1, batch_first=True, bidirectional=True)
         self.unfreeze_backbone_at_epoch = unfreeze_backbone_at_epoch
         self.enable_mc_dropout = False
 
@@ -56,8 +56,8 @@ class SupervisedDownstream(pl.LightningModule):
         x = self.dp(emb_t)
 
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        pred = self.fc3(x)
+        # pred = self.fc4(x)
 
         return pred, emb, emb_t
 
