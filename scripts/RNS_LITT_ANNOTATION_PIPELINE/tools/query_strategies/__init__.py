@@ -1,4 +1,4 @@
-from .random_sampling import RandomSampling
+from .random_sampling import RandomSampling, RandomSamplingRNS
 from .least_confidence import LeastConfidence, LeastConfidenceRNS
 from .margin_sampling import MarginSampling, MarginSamplingRNS
 from .entropy_sampling import EntropySampling, EntropySamplingRNS

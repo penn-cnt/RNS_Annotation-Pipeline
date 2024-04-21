@@ -66,6 +66,9 @@ class Data:
             self.combine_window_to_episode(self.X_train, self.seq_len_train),
             self.combine_window_to_episode(self.Y_train, self.seq_len_train), self.args_task['transform'])
 
+    def get_train_data_unaugmented_split(self):
+        return self.labeled_idxs.copy(), self.handler(self.X_train, self.Y_train, self.args_task['transform'])
+
     def get_test_data(self):
         return self.handler(self.combine_window_to_episode(self.X_test, self.seq_len_test),
                             self.combine_window_to_episode(self.Y_test, self.seq_len_test), self.args_task['transform'])
@@ -159,6 +162,7 @@ class Data:
         probs_out = []
         probs_sliced = self.combine_window_to_episode(data, seq_len)
         for i, unlabeled in enumerate(self.combine_window_to_episode(index, seq_len)):
+            print(unlabeled)
             cleaned_probs = probs_sliced[i][unlabeled]
             if len(cleaned_probs) > 0:
                 probs_out.append(cleaned_probs)

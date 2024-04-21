@@ -5,7 +5,7 @@ from query_strategies import RandomSampling, LeastConfidence, MarginSampling, En
     LossPredictionLoss, VAAL, WAAL, \
     LeastConfidenceRNS, LeastConfidenceDropoutRNS, EntropySamplingRNS, EntropySamplingDropoutRNS, MarginSamplingRNS, \
     MarginSamplingDropoutRNS, BALDDropoutRNS, MeanSTDRNS, KMeansSamplingRNS, KCenterGreedyRNS, KCenterGreedyPCARNS, \
-    BadgeSamplingRNS, WAALRNS, LossPredictionLossRNS
+    BadgeSamplingRNS, WAALRNS, LossPredictionLossRNS ,RandomSamplingRNS
 
 
 def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=False):
@@ -59,33 +59,33 @@ def get_strategy(STRATEGY_NAME, dataset, net, args_input, args_task, rns_data=Fa
             raise NotImplementedError
     else:
         if STRATEGY_NAME == 'RandomSampling':
-            return RandomSampling(dataset, net, args_input, args_task)
+            return RandomSamplingRNS(dataset, net, args_input, args_task) #Done
         elif STRATEGY_NAME == 'LeastConfidence':
-            return LeastConfidenceRNS(dataset, net, args_input, args_task)
+            return LeastConfidenceRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'MarginSampling':
             return MarginSamplingRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'EntropySampling':
-            return EntropySamplingRNS(dataset, net, args_input, args_task)
+            return EntropySamplingRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'LeastConfidenceDropout':
-            return LeastConfidenceDropoutRNS(dataset, net, args_input, args_task)
+            return LeastConfidenceDropoutRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'MarginSamplingDropout':
             return MarginSamplingDropoutRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'EntropySamplingDropout':
-            return EntropySamplingDropoutRNS(dataset, net, args_input, args_task)
+            return EntropySamplingDropoutRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'KMeansSampling':
-            return KMeansSamplingRNS(dataset, net, args_input, args_task)
+            return KMeansSamplingRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'KMeansSamplingGPU':
             return KMeansSamplingGPU(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KCenterGreedy':
             return KCenterGreedyRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'KCenterGreedyPCA':
-            return KCenterGreedyPCARNS(dataset, net, args_input, args_task)
+            return KCenterGreedyPCARNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'BALDDropout':
-            return BALDDropoutRNS(dataset, net, args_input, args_task)
+            return BALDDropoutRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'VarRatio':
             return VarRatio(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'MeanSTD':
-            return MeanSTDRNS(dataset, net, args_input, args_task)
+            return MeanSTDRNS(dataset, net, args_input, args_task)#Done
         elif STRATEGY_NAME == 'BadgeSampling':
             return BadgeSamplingRNS(dataset, net, args_input, args_task)
         elif STRATEGY_NAME == 'LossPredictionLoss':

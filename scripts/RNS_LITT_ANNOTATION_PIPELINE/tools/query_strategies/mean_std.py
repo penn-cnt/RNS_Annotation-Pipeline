@@ -15,7 +15,7 @@ class MeanSTD(Strategy):
         return unlabeled_idxs[uncertainties.sort(descending=True)[1][:n]]
 
 class MeanSTDRNS(Strategy):
-    def __init__(self, dataset, net, args_input, args_task, n_drop = 10):
+    def __init__(self, dataset, net, args_input, args_task, n_drop = 3):
         super(MeanSTDRNS, self).__init__(dataset, net, args_input, args_task)
         self.n_drop = n_drop
 

@@ -39,6 +39,7 @@ def init_centers(X, K):
     indsAll = [ind]
     centInds = [0.] * len(X)
     cent = 0
+    dist = []
     print('#Samps\tTotal Distance')
     while len(mu) < K:
         if len(mu) == 1:
@@ -51,6 +52,7 @@ def init_centers(X, K):
                     D2[i] = newD[i]
         print(str(len(mu)) + '\t' + str(sum(D2)), flush=True)
         # if sum(D2) == 0.0: pdb.set_trace()
+        dist.append(sum(D2))
         D2 = D2.ravel().astype(float)
         Ddist = (D2 ** 2)/ sum(D2 ** 2)
         customDist = stats.rv_discrete(name='custm', values=(np.arange(len(D2)), Ddist))
@@ -59,7 +61,7 @@ def init_centers(X, K):
         mu.append(X[ind])
         indsAll.append(ind)
         cent += 1
-    return indsAll
+    return indsAll,dist
 
 class BadgeSamplingRNS(Strategy):
     def __init__(self, dataset, net, args_input, args_task):
@@ -68,6 +70,15 @@ class BadgeSamplingRNS(Strategy):
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
         gradEmbedding, seq_len = self.get_grad_embeddings(unlabeled_data)
-        chosen = init_centers(gradEmbedding, 5*n)
-        chosen = self.keep_continuous_segments(np.sort(chosen),8)
-        return unlabeled_idxs[chosen]
+        chosen, dist = init_centers(gradEmbedding, 5*n)
+        fillin_metrics = np.zeros(len(unlabeled_idxs))
+        for i in range(len(chosen) - 1):
+            fillin_metrics[chosen[i]] = dist[i]
+        fillin_metrics[fillin_metrics.argsort()[-1]] = fillin_metrics[fillin_metrics.argsort()[-2]]
+        uncertainties = fillin_metrics
+        to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, unlabeled_idxs, n)
+        unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
+        print('selected', np.sum(to_select))
+
+        assert len(to_select) == len(unlabeled_idxs)
+        return unlabeled_idxs[to_select.astype(bool)]

@@ -2,7 +2,7 @@ import numpy as np
 from .strategy import Strategy
 from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
-
+from copy import deepcopy
 class KCenterGreedy(Strategy):
     def __init__(self, dataset, net, args_input, args_task):
         super(KCenterGreedy, self).__init__(dataset, net, args_input, args_task)
@@ -40,6 +40,7 @@ class KCenterGreedyRNS(Strategy):
         labeled_idxs, train_data = self.dataset.get_train_data_unaugmented()
         embeddings, embeddings_t, seq_len  = self.get_embeddings(train_data)
         embeddings = embeddings_t.numpy()
+        labeled_idxs_copy = deepcopy(labeled_idxs)
         norm_data = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
         dist_mat = np.dot(norm_data, norm_data.T)
         mat = dist_mat[~labeled_idxs, :][:, labeled_idxs]
@@ -60,7 +61,7 @@ class KCenterGreedyRNS(Strategy):
         dis = np.min(similarity_matrix, 1)
         dis[output] = 1
         uncertainties = dis
-        to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, labeled_idxs, n, descending=True)
+        to_select = self.metrics_distribution_rescaling(uncertainties, seq_len, labeled_idxs_copy, n, descending=True)
         unlabeled_idxs, _ = self.dataset.get_unlabeled_data()
         print('selected', np.sum(to_select))
         assert len(to_select) == len(unlabeled_idxs)
