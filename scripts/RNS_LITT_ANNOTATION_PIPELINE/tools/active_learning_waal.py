@@ -25,15 +25,15 @@ import pytorch_lightning.callbacks as pl_callbacks
 class Classifier(pl.LightningModule):
     def __init__(self, input_dim=512):
         super().__init__()
-        self.fc1 = nn.Linear(input_dim, 512)
-        self.fc2 = nn.Linear(512, 64)
+        self.fc1 = nn.Linear(input_dim, 256)
+        self.fc2 = nn.Linear(256, 64)
         self.dp = nn.Dropout1d(p=0.2)
-        self.fc3 = nn.Linear(64, 8)
-        self.fc4 = nn.Linear(8, 2)
+        self.fc3 = nn.Linear(64, 2)
+        # self.fc4 = nn.Linear(8, 2)
         self.softmax = nn.Softmax(dim=1)
         self.alpha = 0
         self.gamma = 5
-        self.lstm = nn.LSTM(512, 256, 1, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(256, 128, 1, batch_first=True, bidirectional=True)
         self.enable_mc_dropout = False
         self.input_dim = input_dim
 
@@ -57,8 +57,7 @@ class Classifier(pl.LightningModule):
         x = self.dp(emb_t)
 
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        pred = self.fc4(x)
+        pred = self.fc3(x)
         pred = self.softmax(pred)
 
         return pred, emb, emb_t
@@ -125,8 +124,8 @@ class WAAL(pl.LightningModule):
 
         # training feature extractor and predictor
         self.set_requires_grad(self.net_clf, True)
-        # self.set_requires_grad(self.net_fea, True, exclude=['0','1','2','3','4','5','6'])
-        self.set_requires_grad(self.net_fea, False)
+        self.set_requires_grad(self.net_fea, True, exclude=['0','1','2','3','4','5','6'])
+        # self.set_requires_grad(self.net_fea, False)
         self.set_requires_grad(self.net_dis, False)
 
         lb_z = self.net_fea(label_x).view(-1, 2048)

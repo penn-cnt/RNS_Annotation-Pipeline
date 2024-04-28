@@ -68,7 +68,7 @@ class BadgeSamplingRNS(Strategy):
         super(BadgeSamplingRNS, self).__init__(dataset, net, args_input, args_task)
 
     def query(self, n):
-        unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()
+        unlabeled_idxs, unlabeled_data = self.dataset.get_train_data_unaugmented()
         gradEmbedding, seq_len = self.get_grad_embeddings(unlabeled_data)
         chosen, dist = init_centers(gradEmbedding, 5*n)
         fillin_metrics = np.zeros(len(unlabeled_idxs))

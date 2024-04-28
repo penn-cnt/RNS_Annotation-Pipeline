@@ -50,6 +50,7 @@ class KCenterGreedyPCARNS(Strategy):
         embeddings, embeddings_t, seq_len = self.get_embeddings(train_data)
         embeddings = embeddings_t.numpy()
         labeled_idxs_copy = deepcopy(labeled_idxs)
+
         # downsampling embeddings if feature dim > 50
         if len(embeddings[0]) > 50:
             pca = PCA(n_components=50)
@@ -67,7 +68,9 @@ class KCenterGreedyPCARNS(Strategy):
             labeled_idxs[q_idx] = True
             mat = np.delete(mat, q_idx_, 0)
             mat = np.append(mat, dist_mat[~labeled_idxs, q_idx][:, None], axis=1)
+
         output = np.arange(self.dataset.n_pool)[(self.dataset.labeled_idxs ^ labeled_idxs)]
+
         norm_data = embeddings_t / np.linalg.norm(embeddings_t, axis=1, keepdims=True)
         norm_data_core = embeddings_t[output] / np.linalg.norm(embeddings_t[output], axis=1, keepdims=True)
         similarity_matrix = np.dot(norm_data, norm_data_core.T)
@@ -80,4 +83,3 @@ class KCenterGreedyPCARNS(Strategy):
         assert len(to_select) == len(unlabeled_idxs)
 
         return unlabeled_idxs[to_select.astype(bool)]
-
