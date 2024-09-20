@@ -15,6 +15,9 @@ scripts/PIPELINE*
 *.npy
 *.pickle
 *.pkl
+*.zip
+*.svg
+
 
 # Exceptions
 !/user_data/README.md
