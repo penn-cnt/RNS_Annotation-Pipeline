@@ -25,7 +25,7 @@ class Net:
         self.log_folder_root = '../../../user_data/logs/' + log_folder_root + '/'
         self.ckpt_folder_root = '../../../user_data/checkpoints/' + ckpt_folder_root + '/'
 
-    def train(self, data, test_data=None):
+    def train(self, data, test_data=None, initialize_only = None):
         ckpt_save_n_step = 20
 
         checkpoint_callback = pl_callbacks.ModelCheckpoint(monitor='train_loss',
@@ -61,14 +61,15 @@ class Net:
         self.trainer = trainer
         self.net.to(self.device)
 
-        if test_data is not None:
-            testloader = DataLoader(test_data, shuffle=False, **self.params['loader_te_args'])
-            loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])
+        if not initialize_only:
+            if test_data is not None:
+                testloader = DataLoader(test_data, shuffle=False, **self.params['loader_te_args'])
+                loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])
 
-            self.trainer.fit(self.net, loader, testloader)
-        else:
-            loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])
-            self.trainer.fit(self.net, loader)
+                self.trainer.fit(self.net, loader, testloader)
+            else:
+                loader = DataLoader(data, shuffle=True, **self.params['loader_tr_args'])
+                self.trainer.fit(self.net, loader)
 
     def run_prediction(self, data):
         loader = DataLoader(data, shuffle=False, **self.params['loader_te_args'])

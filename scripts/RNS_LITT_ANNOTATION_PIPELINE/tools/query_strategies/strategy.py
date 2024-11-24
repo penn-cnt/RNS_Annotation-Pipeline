@@ -59,15 +59,15 @@ class Strategy:
         if neg_idxs:
             self.dataset.labeled_idxs[neg_idxs] = False
 
-    def train(self, data=None, model_name=None):
+    def train(self, data=None, model_name=None, initialize_only = False):
 
         if model_name == None:
             if data == None:
                 labeled_idxs, labeled_data = self.dataset.get_labeled_data()
 
-                self.net.train(labeled_data, self.dataset.get_test_data())
+                self.net.train(labeled_data, self.dataset.get_test_data(), initialize_only= initialize_only)
             else:
-                self.net.train(data)
+                self.net.train(data,initialize_only= initialize_only)
         else:
             if model_name == 'WAAL':
                 labeled_idxs, labeled_data = self.dataset.get_labeled_data()
@@ -149,6 +149,23 @@ class Strategy:
         to_select = self.get_combined_important(torch.flatten(seq_len), metrics, n)
 
         return to_select
+
+    def get_importance_output_plotting(self, uncertainties, seq_len, unlabeled_idxs, percentile = 0.2,
+                                       descending=False):
+        if descending:
+            uncertainties = -uncertainties
+
+        indices = np.argsort(uncertainties)
+        # original_order = indices.argsort()
+        normalized_data = self.normalize(uncertainties)
+        scaling = normalized_data[indices][int(percentile*len(unlabeled_idxs))]
+        uncertainties_metric = scaling - normalized_data
+        uncertainties_metric, seq_len = self.dataset.get_slice_from_episode(uncertainties_metric, seq_len,
+                                                                            ~unlabeled_idxs)
+        uncertainties_metric = np.concatenate(uncertainties_metric)
+        metrics = self.dataset.combine_window_to_episode(uncertainties_metric, seq_len)
+
+        return metrics
 
     def normalize(self, x):
         return (x - min(x)) / (max(x) - min(x))
