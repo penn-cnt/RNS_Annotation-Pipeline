@@ -1,137 +1,209 @@
-CNT Research Repository Template
-================
-![version](https://img.shields.io/badge/version-0.2.1-blue)
-![pip](https://img.shields.io/pypi/v/pip.svg)
-![https://img.shields.io/pypi/pyversions/](https://img.shields.io/pypi/pyversions/4)
+# RNS Active Learning Annotation Pipeline
 
-The purpose of this template is to consolidate shared libraries and enable consistent workflows and tests for most projects in the CNT lab. Users will be able to quickly load code from tested common libraries, or load their own personal code, in an object oriented manner.
+[![DOI](https://img.shields.io/badge/DOI-10.1088%2F1741--2552%2Fade402-blue)](https://doi.org/10.1088/1741-2552/ade402)
+[![Journal](https://img.shields.io/badge/Journal-J.%20Neural%20Eng.-green)](https://iopscience.iop.org/journal/1741-2552)
+![Python](https://img.shields.io/badge/Python-3.8+-yellow)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-# Prerequisites
-In order to use this repository, you must have access to either Python or Matlab. 
+This repository contains the official implementation for the paper:
 
-We also highly recommend the use of a virtual environment, conda environment, or similar software to manage distributions. Examples for their use can be found in the documentation.
+**[Annotating Neurophysiologic Data at Scale with Optimized Human Input](https://doi.org/10.1088/1741-2552/ade402)**
 
-# Installation
+*Journal of Neural Engineering*, Volume 22, Article 046003, 2025
 
-In order to install any of the common library code, we provide instructions for both Python and Matlab below.
+## Authors
 
-## Python
-For python packages, python wheels and tarballs can be found in: CNT_Development/core_libraries/python/.
+Zhongchuan Xu, Brittany H. Scheid, Erin C. Conrad, Kathryn A. Davis, Taneeta Ganguly, Michael A. Gelfand, James J. Gugger, Xiangyu Jiang, Joshua J. LaRocque, William K. S. Ojemann, Saurabh R. Sinha, Genna J. Waldman, Joost Wagenaar, Nishant Sinha, and Brian Litt
 
-To install, run:
+## Overview
 
-> pip install foo.whl
+This repository provides an active learning framework for efficiently annotating neurophysiologic data from Responsive Neurostimulation (RNS) devices. The pipeline combines self-supervised learning (SwAV) with various active learning query strategies to minimize annotation effort while maximizing model performance.
 
-**or**
+![Pipeline Overview](figure/fig2_full_bs_v2.svg)
 
-> pip install foo.tar.gz
+### Key Features
 
-where foo is the name of the library of interest.
-
-## Matlab
-
-:woman_shrugging: In development.
-
-# Documentation
-This template is intended to be used as both an environment and a simple wrapper for research code. Before beginning, we highly recommend that a virtual environment (or equivalent) is created for each 
-project to ensure your dependencies and code are properly referenced. Examples for creating virtual environments is provided below.
+- **Self-Supervised Pre-training**: SwAV-based representation learning on unlabeled RNS data
+- **Multiple Active Learning Strategies**: Comprehensive implementation of 15+ query strategies
+- **Scalable Annotation Pipeline**: Designed to reduce expert annotation burden by identifying the most informative samples
 
 ## Repository Structure
 
-A hyperlink enabled repository tree is available within the [repository_structure](./repository_structure.md) markdown file. We demonstrate the use of git-ginored files and folders by displaying those 
-entries with a :warning: symbol.
+```
+RNS_Annotation-Pipeline/
+├── figure/                          # Paper figures and supplementary materials
+├── scripts/
+│   └── RNS_LITT_ANNOTATION_PIPELINE/
+│       ├── rns_scripts/             # Main RNS active learning scripts
+│       │   ├── models/              # Model architectures
+│       │   │   ├── SwaV.py          # SwAV self-supervised model
+│       │   │   ├── LSTMDownStream.py
+│       │   │   ├── SupervisedDownstream.py
+│       │   │   ├── WAAL_net.py
+│       │   │   └── rns_dataloader.py
+│       │   ├── rns_active_learning_LSTM.py
+│       │   ├── rns_active_learning_lpl.py
+│       │   └── rns_active_learning_waal.py
+│       ├── kaggle_dog_scripts/      # Kaggle seizure detection experiments
+│       └── tools/                   # Shared utilities
+│           ├── query_strategies/    # Active learning query strategies
+│           │   ├── random_sampling.py
+│           │   ├── entropy_sampling.py
+│           │   ├── margin_sampling.py
+│           │   ├── least_confidence.py
+│           │   ├── badge_sampling.py
+│           │   ├── kcenter_greedy.py
+│           │   ├── kmeans_sampling.py
+│           │   ├── loss_prediction.py
+│           │   ├── waal.py
+│           │   ├── vaal.py
+│           │   └── ...
+│           ├── active_learning_data.py
+│           ├── active_learning_net.py
+│           └── active_learning_utility.py
+├── user_data/                       # Private data directory (gitignored)
+├── requirements.txt
+└── README.md
+```
 
-A short description of some of the top-level directories and files are as follows:
+## Implemented Query Strategies
 
-### core_libraries
-This folder contains the submodules and build files that make up the core libraries used for lab-wide projects.
+| Strategy | Description |
+|----------|-------------|
+| **Random Sampling** | Baseline random selection |
+| **Entropy Sampling** | Select samples with highest prediction entropy |
+| **Margin Sampling** | Select samples with smallest margin between top predictions |
+| **Least Confidence** | Select samples with lowest prediction confidence |
+| **BADGE** | Batch Active learning by Diverse Gradient Embeddings |
+| **K-Center Greedy** | Core-set selection using greedy k-center algorithm |
+| **K-Means Sampling** | Cluster-based sampling using K-Means |
+| **BALD** | Bayesian Active Learning by Disagreement |
+| **Loss Prediction** | Learning Loss for Active Learning |
+| **WAAL** | Wasserstein Adversarial Active Learning |
+| **VAAL** | Variational Adversarial Active Learning |
+| **Adversarial BIM/DeepFool** | Adversarial perturbation-based selection |
 
-### documents
-This folder contains various research documents associated with a project (i.e. SoPs, Pipeline diagrams, etc.) as well as code documentation (e.g.document strings) for the various libraries.
+## Installation
 
-### examples
-This folder contains example python and matlab scripts for various research tasks as well as how to use common libraries and environments.
+### Prerequisites
 
-### reference_data
-This folder contains data that can be used for building targets or conducting unit tests.
+- Python 3.8+
+- CUDA-compatible GPU (recommended)
 
-### scripts
-This folder contains user-defined scripts on a per project basis.
+### Setup
 
-### unit_tests
-This folder contains unit tests for validating new/altered code at both the machine level and model level.
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/RNS_Annotation-Pipeline.git
+cd RNS_Annotation-Pipeline
+```
 
-### user_data
-This folder is meant to store user data. Data in this repository is private by default and will not be uploaded to public repositories.
+2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\activate  # Windows
+```
 
-### .gitignore
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-This file helps prevent certain files from being uploaded to the public repository. This can be to avoid excess data volumes, or to protect sensitive information. By default, the ignored files and 
-folders are designed for the development of a lab-wide template, and users should adjust the settings to match their own needs.
+### Dependencies
 
-# Virtual Environments
+```
+numpy~=1.23.1
+tqdm~=4.64.0
+matplotlib~=3.5.2
+pandas~=1.4.3
+nltk~=3.7
+scipy~=1.8.1
+scikit-learn
+lightly~=1.3.1
+h5py~=3.7.0
+pytorch-lightning
+torch
+torchvision
+```
 
-## Python
+## Usage
 
-### Conda
+### 1. Data Preparation
 
-We recommend using the pre-built environment files provided to start your project. These files can be found in the following subfolders: core_libraries/python/*/*yml and can be installed using the following command:
-> conda env create -f foo.yml
+Place your RNS data in the `user_data/` directory. The expected format is HDF5 or NumPy arrays with the appropriate structure.
 
-where foo is the name of the environment.
+### 2. Self-Supervised Pre-training (SwAV)
 
-For those who wish to create their own environment, we introduced some of the basics below.
+Train the SwAV model on unlabeled data:
 
-#### Creation
-> conda create --name myenv
+```bash
+cd scripts/RNS_LITT_ANNOTATION_PIPELINE/rns_scripts
+python -c "from RNS_Swav_train import *"
+```
 
-where myenv is the name of the environment you wish to create.
+Or use the Jupyter notebook:
+```
+scripts/RNS_LITT_ANNOTATION_PIPELINE/rns_scripts/RNS_Swav_train.ipynb
+```
 
-#### Listing environments
-> conda env list
+### 3. Active Learning
 
-#### Activating Environment
-> conda activate myenv
+Run active learning with your chosen strategy:
 
-where myenv is the name of the environment you wish to activate.
+```bash
+cd scripts/RNS_LITT_ANNOTATION_PIPELINE/rns_scripts
 
-#### Deactivating an environment
-> conda deactivate
+# Using LSTM classifier
+python rns_active_learning_LSTM.py
 
-#### More information
-For more information, please read: https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#activating-an-environment
+# Using Loss Prediction Learning
+python rns_active_learning_lpl.py
 
-### Virtual Environment
+# Using WAAL
+python rns_active_learning_waal.py
+```
 
-First make sure you have venv installed. If not, you can pip install it as follows: pip install venv
+### 4. Configuration
 
-#### Creation
-> python3 -m venv /path/to/new/virtual/environment
+Key parameters in the active learning scripts:
 
-#### Listing environments
-> lsvirtualenv
+```python
+nStart = 1       # Initial labeled pool (% of total)
+nEnd = 20        # Final labeled pool (% of total)
+nQuery = 2       # Samples to query per round (% of total)
+strategy_name = 'EntropySampling'  # Query strategy to use
+```
 
-You may need to install virutalenvwrapper to use this command. ( pip install virtualenvwrapper. ) If it doesn't populate to your path, check the package directory for the executable.
+## Citation
 
-#### Activating Environment
-> source /path/to/venv/bin/activate
+If you use this code in your research, please cite our paper:
 
-#### Deactivating an environment
-> deactivate
+```bibtex
+@article{Xu_2025_JNE,
+  author = {Xu, Zhongchuan and Scheid, Brittany H. and Conrad, Erin C. and Davis, Kathryn A. and Ganguly, Taneeta and Gelfand, Michael A. and Gugger, James J. and Jiang, Xiangyu and LaRocque, Joshua J. and Ojemann, William K. S. and Sinha, Saurabh R. and Waldman, Genna J. and Wagenaar, Joost and Sinha, Nishant and Litt, Brian},
+  title = {Annotating neurophysiologic data at scale with optimized human input},
+  journal = {Journal of Neural Engineering},
+  volume = {22},
+  number = {4},
+  pages = {046003},
+  year = {2025},
+  doi = {10.1088/1741-2552/ade402}
+}
+```
 
-(Type this command in your shell.)
+## License
 
-## Matlab
+This work is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
 
-🤷‍♂️
+## Contact
 
-# License
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+For questions or collaboration inquiries, please contact:
 
-# Contact Us
-Any questions should be directed to the data science team. Contact information is provided below:
+- **Zhongchuan Xu** - Primary Author
+- **Brian Litt** - Principal Investigator
 
-[Brian Prager](mailto:bjprager@seas.upenn.edu)
-
-[Joshua Asuncion](mailto:asuncion@seas.upenn.edu)
+Center for Neuroengineering and Therapeutics (CNT)  
+University of Pennsylvania
 
