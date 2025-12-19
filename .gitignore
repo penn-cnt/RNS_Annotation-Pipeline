@@ -16,7 +16,6 @@ scripts/PIPELINE*
 *.pickle
 *.pkl
 *.zip
-*.svg
 
 
 # Exceptions
